@@ -1,5 +1,4 @@
 const path = require('path');
-// const CopyPlugin = require('copy-webpack-plugin');
 const HTMLWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -14,6 +13,10 @@ module.exports = {
       {
         test: /\.png$/,
         type: 'asset/resource'
+      },
+      {
+        test: /\.css$/,
+        use: [ 'style-loader', 'css-loader' ]
       }
     ]
   },

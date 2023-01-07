@@ -1,0 +1,100 @@
+* {
+	box-sizing: border-box;
+}
+
+.card {
+	width: 220px;
+	height: 300px;
+	display: flex;
+	flex-direction: column;
+	padding: 4px;
+}
+
+.card .image {
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+.card .title {
+	font-weight: bold;
+	font-size: 20px;
+	line-height: 2em;
+	margin: 0;
+	margin-bottom: 0.25em;
+}
+
+#card-shelf {
+	position: absolute;
+	height: 320px;
+	width: 100vw;
+	top: calc(100vh - 320px);
+	display: flex;
+	gap: 16px;
+	padding-left: 16px;
+	overflow: hidden;
+}
+
+#card-shelf .card {
+	transform: translateY(220px);
+	transition: transform 0.3s;
+}
+
+#card-shelf .card:hover {
+	transform: translateY(0);
+}
+
+#dice-chooser {
+	width: 640px;
+	height: 640px;
+	position: absolute;
+	top: 50vh;
+	left: 50vw;
+	transform: translate(-50%, -50%);
+	background-size: cover;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+.dice-container {
+	width: 96px;
+	height: 96px;
+	display: grid;
+	position: absolute;
+	transform: translate(-50%, -50%);
+}
+
+.dice-container .image {
+	background-size: cover;
+	filter: hue-rotate(45deg) brightness(1.25) contrast(1.25) drop-shadow(0 2px 12px rgb(0 0 0 / .5));
+}
+
+.dice-container .label {
+	position: absolute;
+	font-weight: bold;
+	color: white;
+	font-size: 24px;
+	white-space: pre;
+	font-family: sans-serif;
+	text-shadow: 0 2px 12px rgb(0 0 0 / .5), 0 1px 4px rgba(0 0 0 / .5);
+}
+
+.dice-container .label.left {
+	top: 50%;
+	right: 100%;
+	padding-right: 12px;
+	transform: translateY(-50%);
+}
+
+.dice-container .label.right {
+	top: 50%;
+	left: 100%;
+	padding-left: 12px;
+	transform: translateY(-50%);
+}
+
+.dice-container .label.center {
+	top: 100%;
+	padding-top: 12px;
+	left: 50%;
+	transform: translateX(-50%);
+}
