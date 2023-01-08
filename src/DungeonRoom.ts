@@ -1,4 +1,4 @@
-import { vec2 } from 'gl-matrix';
+import { vec2, vec3 } from 'gl-matrix';
 
 interface Entity {
 	type: string;
@@ -8,11 +8,13 @@ interface Entity {
 
 export default interface DungeonRoom {
 	size: vec2;
+	start: vec2,
+	end: vec2,
 	solid: number[];
 	entities: Entity[];
 }
 
-export async function readRoomFromImage(src: string): Promise<DungeonRoom> {
+export async function readRoomFromImage(src: string, map: Map<number, Entity>): Promise<DungeonRoom> {
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d')!;
 
@@ -43,19 +45,44 @@ export async function readRoomFromImage(src: string): Promise<DungeonRoom> {
 	}
 
 	let mapData: number[] = [];
-	let width = right - left + 3;
-	let height = bottom - top + 3;
+	let width = right - left + 4;
+	let height = bottom - top + 4;
+	let start = vec2.create();
+	let end = vec2.create();
+	let entities: Entity[] = [];
 
-	for (let j = top - 1; j <= bottom + 1; j++) {
-		for (let i = left - 1; i <= right + 1; i++) {
-			let color = imageData[(j * img.width + i) * 4];
-			mapData.push(color > 0 ? 0 : 1);
+	for (let j = top - 1; j <= bottom + 2; j++) {
+		for (let i = left - 1; i <= right + 2; i++) {
+			let coordinate = vec2.fromValues(i - left, j - top);
+
+			const color = (imageData[(j * img.width + i) * 4] << 16) |
+				(imageData[(j * img.width + i) * 4 + 1] << 8) |
+				imageData[(j * img.width + i) * 4 + 2];
+
+			let solid = color === 0x000000;
+			mapData.push(solid ? 1 : 0);
+
+			if (color === 0x0000ff) {
+				start = coordinate;
+			}
+			else if (color === 0xff0000) {
+				end = coordinate;
+			}
+			else if (map.has(color)) {
+				entities.push({ ...JSON.parse(JSON.stringify(map.get(color)!)), pos: coordinate });
+			}
+			else if (color === 0xffffff || color === 0x000000) {}
+			else {
+				console.warn('Unknown color code', color);
+			}
 		}
 	}
 
 	return {
 		solid: mapData,
 		size: [ width, height ],
-		entities: []
+		start,
+		end,
+		entities
 	};
 }

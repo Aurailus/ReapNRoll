@@ -13,6 +13,7 @@ import dice_d20 from '../res/dice_d20.png';
 import health_full from '../res/health_full.png';
 import health_empty from '../res/health_empty.png';
 import cancel_button from '../res/cancel_cast.png';
+import soul_icon from '../res/soul_icon.png';
 
 export default function renderCard(card: Card, accelerator: number | null = null, active: boolean = false,
 	onClick: (() => void) | null = null) {
@@ -91,7 +92,6 @@ export function renderDiceChooser(base: Dice, extra: Dice[], title: string,
 		dieElem.style.top = `${(Math.sin(angle) * 42) + 50}%`;
 
 		diceChooser.appendChild(dieElem);
-
 	}
 }
 
@@ -133,4 +133,20 @@ export function renderHealth(health: number, maxHealth: number) {
 		if (i < health) notch.classList.add('full');
 		healthContainer.appendChild(notch);
 	}
+}
+
+export function renderCurrency(currency: number) {
+	let currencyContainer = document.getElementById('currency-container');
+	if (currencyContainer) currencyContainer.innerHTML = '';
+	else {
+		currencyContainer = document.createElement('div');
+		currencyContainer.id = 'currency-container';
+		currencyContainer.style.setProperty('--bg', `url(${soul_icon})`);
+		document.body.appendChild(currencyContainer);
+	}
+
+	currencyContainer.innerHTML = `
+		<div class='icon'></div>
+		<p class='amount'>${currency}</p>
+	`;
 }

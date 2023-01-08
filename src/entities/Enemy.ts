@@ -2,10 +2,19 @@ import { vec2, vec4 } from 'gl-matrix';
 
 import Room from '../Room';
 import Entity from './Entity';
-import { collides, rayCollides } from '../Collides';
 import getPath from '../AStar';
+import StatusText from '../StatusText';
+import { collides, rayCollides } from '../Collides';
+import SoulDrop from './SoulDrop';
+
+
+const DEFAULT_ACTIVATE_RANGE = 8;
+const DEFAULT_DEACTIVATE_RANGE = 10;
 
 export interface Props {
+	activateRange: number;
+	deactivateRange: number;
+	value: number;
 }
 
 export const ENEMIES = new Set<Enemy>();
@@ -13,6 +22,7 @@ export const ENEMIES = new Set<Enemy>();
 export default class Enemy extends Entity<Props> {
 	readonly type = 'enemy';
 
+	private active = false;
 	private sprite: Phaser.GameObjects.Sprite;
 	// private targetSprite: Phaser.GameObjects.Sprite;
 
@@ -40,6 +50,16 @@ export default class Enemy extends Entity<Props> {
 	}
 
 	update(delta: number) {
+		const distToPlayer = vec2.dist(this.room.player.pos, this.pos);
+
+		if (!this.active && distToPlayer < (this.data.activateRange ?? DEFAULT_ACTIVATE_RANGE) * 16) {
+			this.active = true;
+		}
+		else if (this.active && distToPlayer > (this.data.deactivateRange ?? DEFAULT_DEACTIVATE_RANGE) * 16) {
+			this.active = false;
+			return;
+		}
+
 		const friction = 0.6;
 		let newVel = vec2.create();
 
@@ -55,7 +75,7 @@ export default class Enemy extends Entity<Props> {
 			}
 		}
 
-		if (this.attackCooldown === 0 && this.noControlTime === 0) {
+		if (this.attackCooldown === 0 && this.noControlTime === 0 && this.active) {
 			let playerTilePos = vec2.round(vec2.create(), vec2.scale(vec2.create(), this.room.player.pos, 1/16));
 			if (!vec2.equals(playerTilePos, this.target)) {
 				this.target = playerTilePos;
@@ -138,7 +158,7 @@ export default class Enemy extends Entity<Props> {
 
 		this.lastVelLen = vec2.dist(this.pos, lastPos);
 
-		if (vec2.dist(this.pos, this.room.player.pos) < 0.8 * 16 && this.attackCooldown <= 0) {
+		if (vec2.dist(this.pos, this.room.player.pos) < 0.8 * 16 && this.attackCooldown === 0 && this.noControlTime === 0) {
 			let kb = vec2.sub(vec2.create(), this.room.player.pos, this.pos);
 			vec2.normalize(kb, kb);
 			vec2.scale(kb, kb, 10);
@@ -164,6 +184,9 @@ export default class Enemy extends Entity<Props> {
 		this.vel = knockback;
 		this.noControlTime = 0.4;
 
+		this.room.scene.add.existing(new StatusText(this.room.scene, vec2.fromValues(
+			this.pos[0] + this.size[0] / 2, this.pos[1] - 4), amount));
+
 		if (this.health <= 0) {
 			this.killTime = 0.1;
 			vec2.scale(this.vel, this.vel, 1.5);
@@ -171,8 +194,13 @@ export default class Enemy extends Entity<Props> {
 	}
 
 	destroy(): void {
+		for (let i = 0; i < (this.data.value ?? 500); i += 100) {
+			this.room.entities.push(new SoulDrop(this.room, this.pos, {}));
+		}
+
 		this.sprite.destroy();
 		ENEMIES.delete(this);
 		this.room.destroyEntity(this);
+
 	}
 }

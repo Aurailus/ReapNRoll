@@ -14,6 +14,9 @@ import health_empty from '../res/health_empty.png';
 import star from '../res/star.png';
 import enemy from '../res/enemy.png';
 import magic_missile_projectile from '../res/magic_missile_projectile.png';
+import start_portal from '../res/start_portal.png';
+import end_portal from '../res/end_portal.png';
+import soul from '../res/soul.png';
 
 import Room from './Room';
 import { Card, CardTypes } from './card/Card';
@@ -40,6 +43,9 @@ export default class GameScene extends Scene {
 		this.load.image('tile_ground', ground);
 		this.load.spritesheet('star_particle', star, { frameWidth: 16, frameHeight: 16 });
 		this.load.image('magic_missile_projectile', magic_missile_projectile);
+		this.load.image('start_portal', start_portal);
+		this.load.image('end_portal', end_portal);
+		this.load.image('soul', soul);
 	}
 
 	create() {
@@ -61,84 +67,120 @@ export default class GameScene extends Scene {
 
 		document.addEventListener('keydown', this.pauseEvent);
 
-		readRoomFromImage(map_img).then(mapData => {
+		readRoomFromImage(map_img, new Map([
+			[ 0x1cff00, {
+				type: 'enemy',
+				pos: [ 0, 0 ],
+				data: {}
+			} ],
+			[ 0x00f3ff, {
+				type: 'spike',
+				pos: [ 0, 0 ],
+				data: {
+					activate: 'activate',
+					deactivate: 'deactivate'
+				},
+			} ],
+			[ 0xffc700, {
+				type: 'enemy',
+				pos: [ 0, 0 ],
+				data: {
+					value: 10000
+				}
+			}]
+		])).then(mapData => {
 			this.map = mapData;
 
 			this.map.entities.push({
 				type: 'timer',
-				pos: [ 4, 4 ],
+				pos: [ 0, 0 ],
 				data: {
-					out: 'a'
+					out: 'deactivate',
+					delay: 1000
 				}
 			}, {
 				type: 'timer',
-				pos: [ 4, 4 ],
+				pos: [ 0, 0 ],
 				data: {
-					in: 'a',
-					delay: 1000,
-					out: 'b'
+					in: 'activate',
+					out: 'deactivate',
+					delay: 1000
 				}
 			}, {
 				type: 'timer',
-				pos: [ 4, 4 ],
+				pos: [ 0, 0 ],
 				data: {
-					in: 'b',
-					delay: 1000,
-					out: 'a'
+					in: 'deactivate',
+					out: 'activate',
+					delay: 1000
 				}
-			}, {
-				type: 'spike',
-				pos: [ 6, 3 ],
-				data: {
-					activate: 'a',
-					deactivate: 'b'
-				}
-			}, {
-				type: 'spike',
-				pos: [ 6, 2 ],
-				data: {
-					activate: 'a',
-					deactivate: 'b'
-				}
-			}, {
-				type: 'spike',
-				pos: [ 6, 1 ],
-				data: {
-					activate: 'a',
-					deactivate: 'b'
-				}
-			},
-			{
-				type: 'enemy',
-				pos: [ 12, 8 ],
-				data: {}
-			},
-			{
-				type: 'enemy',
-				pos: [ 12, 6 ],
-				data: {}
-			},
-			{
-				type: 'enemy',
-				pos: [ 14, 8 ],
-				data: {}
-			},
-			{
-				type: 'enemy',
-				pos: [ 12, 10 ],
-				data: {}
-			}
-			)
+			});
+			// 	type: 'timer',
+			// 	pos: [ 4, 4 ],
+			// 	data: {
+			// 		in: 'a',
+			// 		delay: 1000,
+			// 		out: 'b'
+			// 	}
+			// }, {
+			// 	type: 'timer',
+			// 	pos: [ 4, 4 ],
+			// 	data: {
+			// 		in: 'b',
+			// 		delay: 1000,
+			// 		out: 'a'
+			// 	}
+			// }, {
+			// 	type: 'spike',
+			// 	pos: [ 6, 3 ],
+			// 	data: {
+			// 		activate: 'a',
+			// 		deactivate: 'b'
+			// 	}
+			// }, {
+			// 	type: 'spike',
+			// 	pos: [ 6, 2 ],
+			// 	data: {
+			// 		activate: 'a',
+			// 		deactivate: 'b'
+			// 	}
+			// }, {
+			// 	type: 'spike',
+			// 	pos: [ 6, 1 ],
+			// 	data: {
+			// 		activate: 'a',
+			// 		deactivate: 'b'
+			// 	}
+			// },
+			// {
+			// 	type: 'enemy',
+			// 	pos: [ 12, 6 ],
+			// 	data: {}
+			// },
+			// {
+			// 	type: 'enemy',
+			// 	pos: [ 14, 8 ],
+			// 	data: {}
+			// },
+			// {
+			// 	type: 'enemy',
+			// 	pos: [ 12, 10 ],
+			// 	data: {}
+			// }
+			// )
 
-			this.player = new Player(this, vec2.fromValues(12 * 16, 8 * 16));
+			console.log(this.map);
+			// console.log(this.map.start);
+
+			this.player = new Player(this, vec2.fromValues(this.map.start[0] * 16, this.map.start[1] * 16));
 			this.room = new Room(this, this.map, this.player);
 			this.player.setRoom(this.room);
 
-			// const beam: Card = { type: CardTypes.get('beam')!, modifier: null };
-			// this.player.addCard(beam);
+			const beam: Card = { type: CardTypes.get('beam')!, modifier: null };
+			this.player.addCard(beam);
 
 			const revive: Card = { type: CardTypes.get('revive')!, modifier: null };
-		this.player.addCard(revive);
+			this.player.addCard(revive);
 
 			const heal: Card = { type: CardTypes.get('heal')!, modifier: null };
 			this.player.addCard(heal);
@@ -147,17 +189,17 @@ export default class GameScene extends Scene {
 			const fireball: Card = { type: CardTypes.get('fireball')!, modifier: null };
 			this.player.addCard(fireball);
 
-			const fireball2: Card = { type: CardTypes.get('fireball')!, modifier: 'crude' };
-			this.player.addCard(fireball2);
+			// const fireball2: Card = { type: CardTypes.get('fireball')!, modifier: 'crude' };
+			// this.player.addCard(fireball2);
 
 			const fireball3: Card = { type: CardTypes.get('fireball')!, modifier: 'refined' };
 			this.player.addCard(fireball3);
 
-			// const magic_missile: Card = { type: CardTypes.get('magic_missile')!, modifier: null };
-			// this.player.addCard(magic_missile);
+			const magic_missile: Card = { type: CardTypes.get('magic_missile')!, modifier: null };
+			this.player.addCard(magic_missile);
 
-			// const blink: Card = { type: CardTypes.get('blink')!, modifier: null };
-			// this.player.addCard(blink);
+			const blink: Card = { type: CardTypes.get('blink')!, modifier: null };
+			this.player.addCard(blink);
 
 			this.player.addDice({ sides: 6, modifier: null, durability: 3 });
 			this.player.addDice({ sides: 20, modifier: 'cursed', durability: 3 });

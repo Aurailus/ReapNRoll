@@ -214,3 +214,30 @@ canvas.spellcasting {
 	background: var(--bg-full);
 	background-size: cover;
 }
+
+#currency-container {
+	position: absolute;
+	display: flex;
+	gap: 12px;
+	align-items: center;
+	top: 72px;
+	left: 16px;
+}
+
+#currency-container .icon {
+	width: 36px;
+	height: 36px;
+	background-image: var(--bg);
+	background-size: cover;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+#currency-container .amount {
+	font-weight: bold;
+	color: white;
+	font-size: 28px;
+	font-family: sans-serif;
+	margin: 0;
+	/* margin-bottom: 4px; */
+}

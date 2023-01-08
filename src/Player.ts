@@ -6,12 +6,13 @@ import { collides, intersects } from './Collides';
 import { ENEMIES } from './entities/Enemy';
 import { canExecuteCard, Card, executeCard } from './card/Card';
 import { Dice, rollDice } from './Dice';
-import { renderCards, renderDiceChooser, renderHealth } from './CardRenderer';
+import { renderCards, renderCurrency, renderDiceChooser, renderHealth } from './CardRenderer';
 
 import cursor_normal from '../res/cursor_normal_scaled.png';
 import cursor_spell from '../res/cursor_spell_scaled.png';
 import setPausableTimeout, { pauseTimeouts, resumeTimeouts } from './PauseableTimeout';
 import Room from './Room';
+import StatusText from './StatusText';
 
 export default class Player {
 	sprite: GameObjects.Sprite;
@@ -37,6 +38,7 @@ export default class Player {
 
 	private cards: Card[] = [];
 	private dice:  Dice[] = [];
+	private currency = 10000;
 	private defaultDice: Dice = { sides: 12, modifier: null, durability: null };
 	private activeCard: number | null = null;
 
@@ -81,6 +83,7 @@ export default class Player {
 		});
 
 		this.updateHealth();
+		renderCurrency(this.currency);
 	}
 
 	setRoom(room: Room) {
@@ -314,6 +317,10 @@ export default class Player {
 
 	heal(amount: number) {
 		this.health = Math.min(this.health + amount, this.maxHealth);
+
+		this.room.scene.add.existing(new StatusText(this.room.scene, vec2.fromValues(
+			this.pos[0] + this.size[0] / 2, this.pos[1] - 4), amount, '#16abff'));
+
 		this.invincibilityTime = 0.2;
 		this.updateHealth();
 	}
@@ -377,6 +384,15 @@ export default class Player {
 
 	getMaxHealth() {
 		return this.maxHealth;
+	}
+
+	getCurrency() {
+		return this.currency;
+	}
+
+	setCurrency(value: number) {
+		this.currency = value;
+		renderCurrency(this.currency);
 	}
 }
 

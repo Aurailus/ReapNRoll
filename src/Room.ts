@@ -2,9 +2,11 @@ import { vec2 } from 'gl-matrix';
 import { GameObjects } from 'phaser';
 
 import DungeonRoom from './DungeonRoom';
+import EndPortal from './entities/EndPortal';
 import Enemy from './entities/Enemy';
 import Entity from './entities/Entity';
 import Spike from './entities/Spike';
+import StartPortal from './entities/StartPortal';
 import Timer from './entities/Timer';
 import EventEmitter from './EventEmitter';
 import Player from './Player';
@@ -14,9 +16,9 @@ import { roundTo, clamp } from './Util';
 const TILE_TRANSFORMER = [ -1, 12, 10, 11, 2, 7, 13, 3, 0, 14, 5, 4, 1, 8, 9, 6 ];
 
 const ENTITY_CONSTRUCTORS: Record<string, typeof Entity<any>> = {
-		timer: Timer,
-		spike: Spike,
-		enemy: Enemy
+	timer: Timer,
+	spike: Spike,
+	enemy: Enemy,
 }
 
 export default class Room {
@@ -54,12 +56,15 @@ export default class Room {
 		this.tilemap = this.scene.make.tilemap({ data: tiles, tileWidth: 16, tileHeight: 16 });
 
 		this.tileSprite = this.scene.add.tileSprite(0, 0,
-			(this.scene.game.config.width as number / 4) + 48,
-			(this.scene.game.config.height as number / 4) + 48, 'tile_ground').setOrigin(0);
+			(this.scene.game.config.width as number / 4) + 128,
+			(this.scene.game.config.height as number / 4) + 128, 'tile_ground').setOrigin(0);
 
 		this.tilemap.addTilesetImage('tile_wall_dirt');
 		let layer = this.tilemap.createLayer(0, 'tile_wall_dirt', -8, -8);
 		this.group.add(layer, true);
+
+		this.entities.push(new StartPortal(this, this.data.start, {}));
+		this.entities.push(new EndPortal(this, this.data.end, {}));
 
 		for (let entData of data.entities) {
 			let entity = new (ENTITY_CONSTRUCTORS[entData.type] as any)(this, entData.pos, entData.data);
@@ -73,10 +78,10 @@ export default class Room {
 		}
 
 		this.tileSprite.setPosition(
-			roundTo(clamp(this.scene.cameras.main.scrollX + this.scene.cameras.main.width / 3 + 32,
-				0, (this.data.size[0] - 1) * 16 - this.tileSprite.width), 32),
-				roundTo(clamp(this.scene.cameras.main.scrollY + this.scene.cameras.main.height / 3 + 32,
-				0, (this.data.size[1] - 2) * 16 - this.tileSprite.height), 32)
+			roundTo(clamp(this.scene.cameras.main.scrollX + this.scene.cameras.main.width / 3,
+				0, (this.data.size[0] - 3) * 16 - this.tileSprite.width), 32),
+				roundTo(clamp(this.scene.cameras.main.scrollY + this.scene.cameras.main.height / 3,
+				0, (this.data.size[1] - 3) * 16 - this.tileSprite.height), 32)
 		);
 
 		if (Math.random() > 0.4) {
