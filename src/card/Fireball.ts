@@ -7,8 +7,9 @@ import setPausableTimeout from '../PauseableTimeout';
 
 import card_image from '../../res/card_image.png';
 
-function isEnemy(entity: Entity): entity is Enemy {
-	return entity.type === 'enemy';
+export function isEnemy(entity: Entity): entity is Enemy {
+	console.log(entity.type);
+	return entity.type.includes('enemy');
 }
 
 const card: CardType = {

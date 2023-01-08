@@ -249,7 +249,7 @@ export function generateCards(budget: number): [ Card, Card, Card ] {
 
 	const cardOne: Card = {
 		type: cardOneType,
-		modifier: [...cardOneType.modifiers, null ][Math.floor(Math.random() * cardOneType.modifiers.length + 1)]
+		modifier: [...cardOneType.modifiers, null, null, null ][Math.floor(Math.random() * cardOneType.modifiers.length + 3)]
 	};
 
 	budget -= cardOne.type.value * CardModifierValues[cardOne.modifier ?? ''];
@@ -258,7 +258,7 @@ export function generateCards(budget: number): [ Card, Card, Card ] {
 	if (possibleTypes.length === 0) possibleTypes = [ ...types ].filter(t => t !== cardOneType.type);
 
 	const cardTwoType = CardTypes.get(possibleTypes[Math.floor(Math.random() * possibleTypes.length)])!;
-	let possibleModifiers = [ ...cardTwoType.modifiers.filter(mod => cardTwoType.value * CardModifierValues[mod ?? ''] <= budget / 2), null ];
+	let possibleModifiers = [ ...cardTwoType.modifiers.filter(mod => cardTwoType.value * CardModifierValues[mod ?? ''] <= budget / 2), null, null, null ];
 	if (possibleModifiers.length === 0) possibleModifiers = [ 'crude', 'binding' ];
 	let cardTwoModifier = possibleModifiers[Math.floor(Math.random() * possibleModifiers.length)];
 
@@ -274,7 +274,7 @@ export function generateCards(budget: number): [ Card, Card, Card ] {
 	.filter(t => t !== cardOneType.type && t !== cardTwoType.type);
 
 	const cardThreeType = CardTypes.get(possibleTypes[Math.floor(Math.random() * possibleTypes.length)])!;
-	possibleModifiers = [ ...cardThreeType.modifiers.filter(mod => cardThreeType.value * CardModifierValues[mod ?? ''] <= budget), null ];
+	possibleModifiers = [ ...cardThreeType.modifiers.filter(mod => cardThreeType.value * CardModifierValues[mod ?? ''] <= budget), null, null, null ];
 	if (possibleModifiers.length === 0) possibleModifiers = [ 'crude', 'binding' ];
 	const cardThreeModifier = possibleModifiers[Math.floor(Math.random() * possibleModifiers.length)];
 

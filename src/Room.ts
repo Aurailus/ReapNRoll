@@ -3,7 +3,7 @@ import { GameObjects } from 'phaser';
 
 import DungeonRoom from './DungeonRoom';
 import EndPortal from './entities/EndPortal';
-import Enemy from './entities/Enemy';
+import MeleeEnemy from './entities/MeleeEnemy';
 import Entity from './entities/Entity';
 import LootChest from './entities/LootChest';
 import Spike from './entities/Spike';
@@ -12,6 +12,7 @@ import Timer from './entities/Timer';
 import EventEmitter from './EventEmitter';
 import Player from './Player';
 import StarParticle from './StarParticle';
+import RangedEnemy from './entities/RangedEnemy';
 import { roundTo, clamp } from './Util';
 
 const TILE_TRANSFORMER = [ -1, 12, 10, 11, 2, 7, 13, 3, 0, 14, 5, 4, 1, 8, 9, 6 ];
@@ -19,7 +20,8 @@ const TILE_TRANSFORMER = [ -1, 12, 10, 11, 2, 7, 13, 3, 0, 14, 5, 4, 1, 8, 9, 6 
 const ENTITY_CONSTRUCTORS: Record<string, typeof Entity<any>> = {
 	timer: Timer,
 	spike: Spike,
-	enemy: Enemy,
+	melee_enemy: MeleeEnemy,
+	ranged_enemy: RangedEnemy,
 	loot_chest: LootChest
 }
 

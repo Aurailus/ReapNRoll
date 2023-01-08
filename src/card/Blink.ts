@@ -2,15 +2,11 @@ import { CardType } from './Card';
 
 import { vec2, vec4 } from 'gl-matrix';
 import Enemy from '../entities/Enemy';
-import Entity from '../entities/Entity';
 import setPausableTimeout from '../PauseableTimeout';
 
 import card_image from '../../res/card_image.png';
 import { collides } from '../Collides';
-
-function isEnemy(entity: Entity): entity is Enemy {
-	return entity.type === 'enemy';
-}
+import { isEnemy } from './Fireball';
 
 const card: CardType = {
 	name: 'Blink',

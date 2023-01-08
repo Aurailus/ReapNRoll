@@ -2,8 +2,8 @@ import { CardType } from './Card';
 
 import card_image from '../../res/card_image.png';
 import { vec2 } from 'gl-matrix';
-import Enemy from '../entities/Enemy';
 import MagicMissileProjectile from '../entities/MagicMissileProjectile';
+import { isEnemy } from './Fireball';
 
 const card: CardType = {
 	name: 'Magic Missile',
@@ -14,17 +14,16 @@ const card: CardType = {
 	description: 'Fires 3 homing bolts into enemies near the target, dealing %1% damage to each.',
 	rolls: [ '1x+9', '1x+9', '1x+9' ],
 	valid: ({ room }) => {
-		return room.entities.filter(entity => entity.type === 'enemy').length >= 1;
+		return room.entities.findIndex(isEnemy) !== -1;
 	},
 	cast: (data, { room, target }) => {
-		let enemies = room.entities.filter(entity => entity.type === 'enemy') as Enemy[];
-		let totalDamage = 0;
-
-		enemies.sort((a, b) => {
+		let enemies = room.entities.filter(isEnemy).sort((a, b) => {
 			let aDist = vec2.distance(vec2.add(vec2.create(), a.pos, vec2.scale(vec2.create(), a.size, 0.5)), target);
 			let bDist = vec2.distance(vec2.add(vec2.create(), b.pos, vec2.scale(vec2.create(), b.size, 0.5)), target);
 			return aDist - bDist;
 		});
+
+		let totalDamage = 0;
 
 		for (let i = 0; i < 3; i++) {
 			room.entities.push(new MagicMissileProjectile(room, room.player.pos,

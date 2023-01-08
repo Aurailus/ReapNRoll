@@ -3,7 +3,7 @@ import { GameObjects, Input } from 'phaser';
 
 import DungeonRoom from './DungeonRoom';
 import { collides, intersects } from './Collides';
-import { ENEMIES } from './entities/Enemy';
+import Enemy, { ENEMIES } from './entities/Enemy';
 import { canExecuteCard, Card, executeCard } from './card/Card';
 import { Dice, rollDice } from './Dice';
 import { renderCards, renderCurrency, renderDiceChooser, renderHealth } from './CardRenderer';
@@ -32,6 +32,8 @@ export default class Player {
 	private noControlTime: number = 0;
 	private dodgeCooldown: number = 0;
 	private attackCooldown: number = 0;
+	private dodgeTime: number = 0;
+	private dodgeHit: Enemy[] = [];
 
 	private room: Room = null as any;
 
@@ -109,6 +111,7 @@ export default class Player {
 
 		this.dodgeCooldown = Math.max(this.dodgeCooldown - delta, 0);
 		this.attackCooldown = Math.max(this.attackCooldown - delta, 0);
+		this.dodgeTime = Math.max(this.dodgeTime - delta, 0);
 
 		vec2.scale(newVel, vec2.normalize(newVel, newVel), speed);
 		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction), vec2.scale(newVel, newVel, 1-friction));
@@ -157,6 +160,13 @@ export default class Player {
 		if (this.rightClicked && !this.noControlTime) {
 			this.handleDodge();
 		}
+
+		if (this.dodgeTime > 0) {
+			this.handleDodgeAttack();
+		}
+		else if (this.dodgeHit.length) {
+			this.dodgeHit = [];
+		}
 	}
 
 	private handleAttack() {
@@ -190,7 +200,7 @@ export default class Player {
 				vec2.sub(kb, vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)), kb);
 				vec2.normalize(kb, kb);
 				vec2.scale(kb, kb, 7);
-				enemy.damage(7, kb);
+				enemy.damage(10, kb);
 			}
 		}
 	}
@@ -337,6 +347,7 @@ export default class Player {
 
 		this.noControlTime = 0.1;
 		this.dodgeCooldown = 0.5;
+		this.dodgeTime = 0.2;
 		this.invincibilityTime = 0.3;
 		this.sprite.setFrame(3);
 		setPausableTimeout(() => this.sprite.setFrame(0), 300);
@@ -349,6 +360,21 @@ export default class Player {
 		vec2.normalize(diff, diff);
 		vec2.scale(diff, diff, 40);
 		this.vel = diff;
+	}
+
+	private handleDodgeAttack() {
+		const enemiesColliding = [...ENEMIES.values()]
+			.filter(enemy => this.dodgeHit.indexOf(enemy) === -1 && intersects(enemy.getBounds(), this.getBounds()));
+
+		enemiesColliding.forEach(enemy => {
+			this.dodgeHit.push(enemy);
+			const kb = vec2.sub(vec2.create(),
+				vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)),
+				vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
+			vec2.normalize(kb, kb);
+			vec2.scale(kb, kb, 7);
+			enemy.damage(5, kb);
+		});
 	}
 
 	damage(amount: number, knockback: vec2 = vec2.create()) {

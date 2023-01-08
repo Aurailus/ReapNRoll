@@ -47,7 +47,7 @@ export default class LoadScene extends Scene {
 	async create() {
 		const objMap = new Map<number, Entity>([
 			[ 0x1cff00, {
-				type: 'enemy',
+				type: 'melee_enemy',
 				pos: [ 0, 0 ],
 				data: {}
 			} ],
@@ -60,10 +60,9 @@ export default class LoadScene extends Scene {
 				},
 			} ],
 			[ 0xffc700, {
-				type: 'enemy',
+				type: 'ranged_enemy',
 				pos: [ 0, 0 ],
 				data: {
-					value: 10000
 				}
 			}], [ 0xfff09d, {
 				type: 'loot_chest',

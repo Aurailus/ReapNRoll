@@ -2,14 +2,10 @@ import { CardType } from './Card';
 
 import { vec2 } from 'gl-matrix';
 import Enemy from '../entities/Enemy';
-import Entity from '../entities/Entity';
 import setPausableTimeout from '../PauseableTimeout';
 
 import card_image from '../../res/card_image.png';
-
-function isEnemy(entity: Entity): entity is Enemy {
-	return entity.type === 'enemy';
-}
+import { isEnemy } from './Fireball';
 
 function lineIntersection(origin1: vec2, direction1: vec2, origin2: vec2, direction2: vec2) {
 	let det = direction1[0] * direction2[1] - direction1[1] * direction2[0];
