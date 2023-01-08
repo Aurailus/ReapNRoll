@@ -357,14 +357,13 @@ export default class Player {
 		this.sprite.setFrame(2);
 		this.scene.time.addEvent({ delay: 100, callback: () => this.sprite.setFrame(0) });
 
-		const circle = this.scene.add.circle(this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2,
+		const circle = this.scene.add.circle(this.pos[0], this.pos[1],
 		radius, 0xff0000, 0.3);
 		this.scene.time.addEvent({ callback: () => circle.destroy(), delay: 100 });
 
 		for (let enemy of ENEMIES) {
-			if (vec2.dist(vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)),
-				vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5))) >= radius) continue;
-			const kb = vec2.fromValues(this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
+			if (vec2.dist(enemy.pos, this.pos) >= radius) continue;
+			const kb = vec2.fromValues(this.pos[0], this.pos[1]);
 			vec2.sub(kb, vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)), kb);
 			vec2.normalize(kb, kb);
 			vec2.scale(kb, kb, 15);
