@@ -5,6 +5,7 @@ import DungeonRoom from './DungeonRoom';
 import EndPortal from './entities/EndPortal';
 import Enemy from './entities/Enemy';
 import Entity from './entities/Entity';
+import LootChest from './entities/LootChest';
 import Spike from './entities/Spike';
 import StartPortal from './entities/StartPortal';
 import Timer from './entities/Timer';
@@ -19,6 +20,7 @@ const ENTITY_CONSTRUCTORS: Record<string, typeof Entity<any>> = {
 	timer: Timer,
 	spike: Spike,
 	enemy: Enemy,
+	loot_chest: LootChest
 }
 
 export default class Room {
@@ -73,6 +75,8 @@ export default class Room {
 	}
 
 	update(delta: number) {
+		this.player.update(delta);
+
 		for (let entity of this.entities) {
 			entity.update(delta);
 		}
@@ -97,5 +101,14 @@ export default class Room {
 
 	destroyEntity(entity: Entity<any>) {
 		this.entities.splice(this.entities.indexOf(entity), 1);
+	}
+
+	restart() {
+		while (this.entities.length > 0) {
+			let ent = this.entities[0];
+			ent.destroy();
+			if (this.entities[0] === ent) this.entities.splice(0, 1);
+		}
+		this.scene.scene.start('room', { room: this.data, player: this.player });
 	}
 }

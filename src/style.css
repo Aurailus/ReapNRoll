@@ -241,3 +241,92 @@ canvas.spellcasting {
 	margin: 0;
 	/* margin-bottom: 4px; */
 }
+
+.choice-container {
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.choice-container .title {
+	color: white;
+	font-family: sans-serif;
+	font-weight: bold;
+	font-size: 48px;
+	margin: 0;
+}
+
+.choice-container .description {
+	color: rgba(255, 255, 255, 0.8);
+	font-family: sans-serif;
+	font-size: 22px;
+	font-weight: bold;
+}
+
+.choice-container .buttons {
+	display: flex;
+	gap: 32px;
+	margin-top: 16px;
+}
+
+.choice-container button {
+	padding: 16px 24px;
+	font-size: 24px;
+	font-weight: bold;
+	background: linear-gradient(-20deg, #931fff 0%, #678cff 100%);
+	color: white;
+	border-radius: 2px;
+	border: none;
+	cursor: unset;
+	will-change: transform;
+
+	transition: filter 0.075s, transform 0.075s;
+}
+
+.choice-container button:hover {
+	filter: brightness(130%) saturate(120%);
+	transform: scale(1.05);
+}
+
+.card-selector {
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.card-selector > .header {
+	color: white;
+	font-family: sans-serif;
+	font-weight: bold;
+	font-size: 48px;
+	margin: 0;
+}
+
+.card-selector > .help {
+	color: rgba(255, 255, 255, 0.8);
+	font-family: sans-serif;
+	font-size: 22px;
+	font-weight: bold;
+	margin-bottom: 48px;
+}
+
+.card-selector .new-cards, .card-selector .player-cards {
+	display: flex;
+	gap: 24px;
+}
+
+.card-selector .new-cards {
+	margin-bottom: 24px;
+}

@@ -179,7 +179,7 @@ export default class Enemy extends Entity<Props> {
 	damage(amount: number, knockback: vec2 = vec2.create()) {
 		if (this.invincibilityTime > 0) return;
 
-		this.invincibilityTime = 0.1;
+		this.invincibilityTime = 0.02;
 		this.health -= amount;
 		this.vel = knockback;
 		this.noControlTime = 0.4;

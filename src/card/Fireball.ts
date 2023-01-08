@@ -14,11 +14,16 @@ function isEnemy(entity: Entity): entity is Enemy {
 const card: CardType = {
 	name: 'Fireball',
 	image: card_image,
+	type: 'fireball',
+	value: 24,
+	modifiers: [ 'refined', 'crude', 'binding', 'wild', 'ravenous', 'vampiric', 'preserved' ],
 	description: 'Creates an explosion at the target, dealing %1% damage to all enemies.',
 	rolls: [ '3x+12' ],
 	cast: (data, { room, target }) => {
 		let circle = room.scene.add.circle(target[0], target[1], 16 * 3, 0xff0000, 0.3);
 		setPausableTimeout(() => circle.destroy(), 200);
+
+		let totalDamage = 0;
 
 		room.entities
 			.filter<Enemy>(isEnemy)
@@ -29,7 +34,10 @@ const card: CardType = {
 				vec2.normalize(diff, diff);
 				vec2.scale(diff, diff, 20);
 				enemy.damage(data.rolls[0].roll, diff);
+				totalDamage += data.rolls[0].roll;
 			});
+
+		return { damage: totalDamage };
 	}
 };
 

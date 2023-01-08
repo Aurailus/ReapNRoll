@@ -51,6 +51,31 @@ export function renderCards(cards: Card[], active: number | null, onClick: (inde
 		renderCard(cards[i], i + 1, active === i, () => onClick(i)));
 }
 
+export function renderCardSelector(playerCards: Card[], newCards: Card[],
+	onChoose: (player: boolean, index: number) => void) {
+
+	let cardSelector = document.createElement('div');
+	cardSelector.classList.add('card-selector');
+	cardSelector.innerHTML = `
+		<h1 class='header'>Choose Card to Discard</h1>
+		<p class='help'>You may only have 7 cards in your hand at a time.</p>
+		<div class='new-cards'></div>
+		<div class='player-cards'></div>
+	`;
+
+	let newCardsElem = cardSelector.querySelector('.new-cards')!;
+	let playerCardsElem = cardSelector.querySelector('.player-cards')!;
+
+	for (let i = 0; i < newCards.length; i++) newCardsElem.appendChild(
+		renderCard(newCards[i], null, false, () => onChoose(false, i)));
+
+	for (let i = 0; i < playerCards.length; i++) playerCardsElem.appendChild(
+		renderCard(playerCards[i], null, false, () => onChoose(true, i)));
+
+	document.body.appendChild(cardSelector);
+	return cardSelector;
+}
+
 export function renderDiceChooser(base: Dice, extra: Dice[], title: string,
 	onClick: (ind: number) => void, onCancel: () => void) {
 
@@ -149,4 +174,26 @@ export function renderCurrency(currency: number) {
 		<div class='icon'></div>
 		<p class='amount'>${currency}</p>
 	`;
+}
+
+export function renderChoice(title: string, description: string, primary: string, secondary: string,
+	onClick: (primary: boolean) => void) {
+
+	let choiceContainer = document.createElement('div');
+	choiceContainer.classList.add('choice-container');
+	choiceContainer.innerHTML = `
+		<h1 class='title'>${title}</h1>
+		<p class='description'>${description}</p>
+		<div class='buttons'>
+			<button class='primary'>${primary}</button>
+			<button class='secondary'>${secondary}</button>
+		</div>
+	`;
+
+	choiceContainer.querySelector('.primary')!.addEventListener('click', () => onClick(true));
+	choiceContainer.querySelector('.secondary')!.addEventListener('click', () => onClick(false));
+
+	document.body.appendChild(choiceContainer);
+
+	return choiceContainer;
 }

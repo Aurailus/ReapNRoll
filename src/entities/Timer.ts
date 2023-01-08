@@ -20,6 +20,7 @@ export default class Timer extends Entity<Props> {
 
 		if (data.in) {
 			this.room.event.bind(data.in, () => {
+				if (this.timeout) return;
 				this.timeout = setPausableTimeout(() => {
 					this.room.event.emit(data.out);
 				}, data.delay || 0);

@@ -14,7 +14,10 @@ function isEnemy(entity: Entity): entity is Enemy {
 
 const card: CardType = {
 	name: 'Blink',
+	type: 'blink',
+	value: 7,
 	image: card_image,
+	modifiers: [ 'refined', 'crude', 'binding', 'wild', 'ravenous', 'vampiric', 'preserved' ],
 	description: 'Teleports the player to the target position, hitting nearby enemies with %1% damage. Fails if the position is obstructed.',
 	rolls: [ '1x+6' ],
 	valid: ({ room, target }) => {
@@ -25,6 +28,8 @@ const card: CardType = {
 	cast: (data, { room, target }) => {
 		const targetBounds = vec4.fromValues(target[0] - room.player.size[0] / 2, target[1] - room.player.size[1] / 2,
 			target[0] + room.player.size[0] / 2, target[1] + room.player.size[1] / 2);
+
+		let totalDamage = 0;
 
 		room.player.setPosition(vec2.fromValues(targetBounds[0], targetBounds[1]));
 
@@ -42,22 +47,10 @@ const card: CardType = {
 				vec2.normalize(diff, diff);
 				vec2.scale(diff, diff, 20);
 				enemy.damage(data.rolls[0].roll, diff);
+				totalDamage += data.rolls[0].roll;
 			});
 
-
-		// let circle = room.scene.add.circle(target[0], target[1], 16 * 3, 0xff0000, 0.3);
-		// setPausableTimeout(() => circle.destroy(), 200);
-
-		// room.entities
-		// 	.filter<Enemy>(isEnemy)
-		// 	.filter(e => vec2.dist(vec2.add(vec2.create(), e.pos, vec2.scale(vec2.create(), e.size, 0.5)), target) < 16 * 4)
-		// 	.map(enemy => {
-		// 		let diff = vec2.sub(vec2.create(), vec2.add(vec2.create(),
-		// 			enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)), target);
-		// 		vec2.normalize(diff, diff);
-		// 		vec2.scale(diff, diff, 20);
-		// 		enemy.damage(data.rolls[0].roll, diff);
-		// 	});
+		return { damage: totalDamage };
 	}
 };
 

@@ -15,7 +15,7 @@ import Room from './Room';
 import StatusText from './StatusText';
 
 export default class Player {
-	sprite: GameObjects.Sprite;
+	sprite: GameObjects.Sprite = null as any;
 
 	vel: vec2 = [ 0, 0 ];
 	pos: vec2 = [ 0, 0 ];
@@ -23,7 +23,6 @@ export default class Player {
 
 	private health: number = 20;
 	private maxHealth: number = 20;
-	private healthElements: GameObjects.Sprite[] = [];
 
 	private clicked = false;
 	private charged = false;
@@ -36,9 +35,9 @@ export default class Player {
 
 	private room: Room = null as any;
 
-	private cards: Card[] = [];
-	private dice:  Dice[] = [];
-	private currency = 10000;
+	cards: Card[] = [];
+	dice:  Dice[] = [];
+	private currency = 30000;
 	private defaultDice: Dice = { sides: 12, modifier: null, durability: null };
 	private activeCard: number | null = null;
 
@@ -47,11 +46,22 @@ export default class Player {
 		right: Input.Keyboard.Key;
 		up: Input.Keyboard.Key;
 		down: Input.Keyboard.Key;
-	};
+	} = {} as any;
 
 	constructor(private scene: Phaser.Scene, pos: vec2) {
-		this.sprite = this.scene.add.sprite(pos[0], pos[1], 'player').setOrigin(0).setDepth(10);
 		this.pos = pos;
+
+		this.scene.input.mouse.disableContextMenu();
+
+		this.updateHealth();
+		renderCurrency(this.currency);
+	}
+
+	setRoom(room: Room) {
+		this.sprite = this.scene.add.sprite(this.pos[0], this.pos[1], 'player').setOrigin(0).setDepth(10);
+
+		this.room = room;
+		this.room.scene.add.existing(this.sprite);
 
 		this.keys = {
 			left: this.scene.input.keyboard.addKey(Input.Keyboard.KeyCodes.A),
@@ -67,8 +77,6 @@ export default class Player {
 			this.updateCards();
 		});
 
-		this.scene.input.mouse.disableContextMenu();
-
 		this.scene.input.on('pointerdown', (evt: MouseEvent) => {
 			if (evt.button === 0 && this.attackCooldown === 0) {
 				this.clicked = true;
@@ -81,13 +89,6 @@ export default class Player {
 				this.rightClicked = true;
 			}
 		});
-
-		this.updateHealth();
-		renderCurrency(this.currency);
-	}
-
-	setRoom(room: Room) {
-		this.room = room;
 	}
 
 	update(delta: number) {
@@ -211,49 +212,97 @@ export default class Player {
 		let oldDice = JSON.parse(JSON.stringify(this.dice));
 		let rollValues: number[] = [];
 
+		let promise: Promise<void>;
+
 		try {
 			for (let i = 0; i < card.type.rolls.length; i++) {
-				await new Promise<void>((resolve, reject) => {
-					renderDiceChooser(this.defaultDice, this.dice, card.type.name, (index) => {
-						let die = index === -1 ? this.defaultDice : this.dice[index];
-						let value = rollDice(die);
-						rollValues.push(value);
-						if (die.durability) die.durability--;
-						if (die.durability === 0) this.dice.splice(index, 1);
-						document.getElementById('dice-chooser')?.remove();
+				if (card.modifier === 'wild') {
+					await new Promise<void>(resolve => {
+						let roll = Math.floor(Math.random() * 20);
+						rollValues.push(roll);
 
 						const rollText = document.createElement('h1');
-						rollText.innerText = value.toString();
+						rollText.innerText = roll.toString();
 						rollText.classList.add('roll-text');
 						document.body.appendChild(rollText);
 
 						setTimeout(() => {
 							rollText.remove();
 							resolve();
-						}, 500);
-					}, () => {
-						if (force) resolve();
-						else reject();
+						}, 200);
 					});
-				});
+				}
+				else {
+					await new Promise<void>((resolve, reject) => {
+						renderDiceChooser(this.defaultDice, this.dice, card.type.name, (index) => {
+							let die = index === -1 ? this.defaultDice : this.dice[index];
+							let value = rollDice(die);
+							rollValues.push(value);
+							if (die.durability) die.durability--;
+							if (die.durability === 0) this.dice.splice(index, 1);
+							document.getElementById('dice-chooser')?.remove();
+
+							const rollText = document.createElement('h1');
+							rollText.innerText = value.toString();
+							rollText.classList.add('roll-text');
+							document.body.appendChild(rollText);
+
+							setTimeout(() => {
+								rollText.remove();
+								resolve();
+							}, 500);
+						}, () => {
+							if (force) resolve();
+							else reject();
+						});
+					});
+				}
 			}
 
-			this.cards.splice(this.activeCard!, 1);
-			this.activeCard = null;
+			if (card.modifier === 'preserved') {
+				card.modifier = null;
+				this.activeCard = null;
+			}
+			else {
+				this.cards.splice(this.activeCard!, 1);
+				this.activeCard = null;
+			}
 
-			setTimeout(() => {
-				executeCard(card, rollValues, ctx)
-				resumeTimeouts();
-			}, 200);
+
+			promise = new Promise(resolve => {
+				setTimeout(() => {
+					let res = executeCard(card, rollValues, ctx)
+
+					if (card.modifier === 'binding') {
+						this.noControlTime = 1;
+					}
+					else if (card.modifier === 'ravenous') {
+						this.damage(2);
+					}
+					else if (card.modifier === 'vampiric') {
+						const healAmount = Math.floor(res.damage / 20);
+						if (healAmount) this.heal(healAmount);
+					}
+
+					resolve();
+				}, 200);
+			})
 		}
 		catch (_) {
 			this.dice = oldDice;
+
+			promise = new Promise(res => res());
 		}
 
 		this.updateCards();
-		setTimeout(() => this.scene.scene.resume(), 200);
+		setTimeout(() => {
+			this.scene.scene.resume();
+			resumeTimeouts();
+		}, 200);
 		document.getElementById('dice-chooser')?.remove();
 		document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
+
+		await promise;
 	}
 
 	private handleChargeAttack() {
@@ -368,7 +417,7 @@ export default class Player {
 		return true;
 	}
 
-	private updateCards() {
+	updateCards() {
 		renderCards(this.cards, this.activeCard, (i) => {
 			this.activeCard = (this.activeCard === i) ? null : i;
 			this.updateCards();

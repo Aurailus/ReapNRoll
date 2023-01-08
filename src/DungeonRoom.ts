@@ -1,6 +1,6 @@
-import { vec2, vec3 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
-interface Entity {
+export interface Entity {
 	type: string;
 	pos: vec2;
 	data: Record<string, any>;

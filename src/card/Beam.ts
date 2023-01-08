@@ -20,13 +20,18 @@ function lineIntersection(origin1: vec2, direction1: vec2, origin2: vec2, direct
 
 const card: CardType = {
 	name: 'Beam',
+	type: 'beam',
+	value: 16,
 	image: card_image,
-	description: 'Fires a beam towards the target, damaging everything in its path.',
+	modifiers: [ 'refined', 'crude', 'binding', 'wild', 'ravenous', 'vampiric', 'preserved' ],
+	description: 'Fires a beam towards the target, dealing %1% damage to everything in its path.',
 	rolls: [ '2x+16' ],
 	cast: (data, { room, target }) => {
 		let direction = vec2.sub(vec2.create(), target, vec2.add(vec2.create(),
 			room.player.pos, vec2.scale(vec2.create(), room.player.size, 0.5)));
 		vec2.normalize(direction, direction);
+
+		let totalDamage = 0;
 
 		let tangentLine = vec2.rotate(vec2.create(), direction, vec2.create(), Math.PI / 2);
 
@@ -49,7 +54,10 @@ const card: CardType = {
 				vec2.normalize(diff, diff);
 				vec2.scale(diff, diff, 20);
 				enemy.damage(data.rolls[0].roll, diff);
+				totalDamage += data.rolls[0].roll;
 			});
+
+		return { damage: totalDamage };
 	}
 };
 
