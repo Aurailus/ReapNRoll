@@ -1,22 +1,16 @@
-import { vec2, vec4 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import Room from '../Room';
 import Entity from './Entity';
-import { intersects } from '../Collides';
-import { renderCardSelector, renderChoice } from '../CardRenderer';
-import { pauseTimeouts, resumeTimeouts } from '../PauseableTimeout';
-import { Card, CardModifiers, CardModifierValues, CardTypes, generateCards } from '../card/Card';
+import { Card, generateCards } from '../card/Card';
+import { renderCardSelector, renderChoice, renderDiceChooser } from '../CardRenderer';
+import setPausableTimeout, { pauseTimeouts, resumeTimeouts } from '../PauseableTimeout';
+import SoulDrop from './SoulDrop';
+import { Dice, DiceModifiers, getDiceName } from '../Dice';
 
 export interface Props {
 	value: number;
-	cost: number;
 }
-
-let budgets = {
-	1: 50,
-	2: 150,
-	3: 500
-};
 
 export default class LootChest extends Entity<Props> {
 	readonly type = 'loot_chest';
@@ -26,21 +20,12 @@ export default class LootChest extends Entity<Props> {
 	private size = vec2.fromValues(19, 15);
 	private pos: vec2;
 	private sprite: Phaser.GameObjects.Sprite;
-	private text: Phaser.GameObjects.Text;
 
 	constructor(room: Room, pos: vec2, data: Props) {
 		super(room, pos, data);
 		this.pos = vec2.scale(vec2.create(), pos, 16);
-
 		this.sprite = this.room.scene.add.sprite(this.pos[0], this.pos[1], 'loot_chest').setOrigin(0);
-		this.text = this.room.scene.add.text(this.pos[0] + this.sprite.width / 2, this.pos[1] - 8, data.cost.toString(), {
-			fontFamily: 'sans-serif',
-			fontSize: '24px',
-			fontStyle: 'bold',
-			color: this.room.player.getCurrency() >= this.data.cost ? 'white' : '#f0798f',
-			stroke: this.room.player.getCurrency() >= this.data.cost ? '#16abff' : '#871f5a',
-			strokeThickness: 4
-		}).setScale(1/4).setOrigin(0.5, 0.5);
+		this.data.value ??= 100;
 	}
 
 	update() {
@@ -53,28 +38,72 @@ export default class LootChest extends Entity<Props> {
 			vec2.scale(vec2.create(), this.size, 0.5));
 
 		if (vec2.dist(playerPos, thisPos) < 16) {
-			if (this.room.player.getCurrency() >= this.data.cost) {
-				this.activate();
-				this.active = true;
-			}
-			else {
-				this.knockback();
-			}
+			this.activate();
+			this.active = true;
 		}
 	}
 
-	activate() {
-		const valueString = this.data.value === 1 ? 'Common' : this.data.value === 2 ? 'Rare' : 'Mythic';
-		renderChoice(`Manifest ${valueString} Booster Pack?`,
-			`Exchange ${this.data.cost} souls for a ${valueString} Booster Pack. Contains 3 random cards.`,
-			'Exchange', 'Cancel', async (primary) => {
+	async activate() {
+		this.destroy();
+		this.knockback();
 
-			if (primary) {
-				this.room.player.setCurrency(this.room.player.getCurrency() - this.data.cost);
-				this.room.entities.filter(e => e.type === 'loot_chest').forEach(e => e.destroy());
+		let lootType = Math.random() < 0.6 ? 'soul' : Math.random() < 0.7 ? 'dice' : 'card';
+		lootType = 'card';
 
-				const newCards: Card[] = generateCards(budgets[this.data.value as keyof typeof budgets]);
-				document.querySelector('.choice-container')?.remove();
+		switch (lootType) {
+			case 'soul': {
+				const amount = Math.round((0.8 + Math.random() * 0.4) * this.data.value / 3) * 100;
+				for (let i = 0; i < amount; i += 100) this.room.entities.push(new SoulDrop(this.room, this.pos, {}));
+				break;
+			}
+			case 'dice': {
+				const dice: Dice = {
+					sides: [ 6, 12, 16, 20 ][Math.floor(Math.random() * 4)],
+					modifier: [...DiceModifiers, null, null ][Math.floor(Math.random() * (DiceModifiers.length + 2))],
+					durability: Math.floor(Math.random() * 3) + 1
+				}
+
+				pauseTimeouts();
+				this.room.scene.scene.pause();
+				document.getElementById('card-shelf')?.remove();
+				document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
+
+				if (this.room.player.dice.length >= 5) {
+					let discardChoice = -1;
+					await new Promise<void>(resolve => {
+						renderDiceChooser(dice, this.room.player.dice, 'New Dice! Choose one to Discard.',
+							(ind) => {
+								discardChoice = ind;
+								resolve()
+							}, () => resolve());
+					});
+					document.getElementById('dice-chooser')?.remove();
+					if (discardChoice !== -1) this.room.player.dice[discardChoice]  = dice;
+				}
+				else {
+					const diceText = document.createElement('h1');
+					diceText.innerText = getDiceName(dice);
+					diceText.classList.add('dice-text');
+					document.body.appendChild(diceText);
+					this.room.player.dice.push(dice);
+					await new Promise<void>(resolve => setTimeout(() => resolve(), 300));
+					diceText.remove();
+				}
+
+				resumeTimeouts();
+				this.room.scene.scene.resume();
+				document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
+				this.room.player.updateCards();
+
+				break;
+			}
+			case 'card': {
+				pauseTimeouts();
+				this.room.scene.scene.pause();
+				document.getElementById('card-shelf')?.remove();
+				document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
+
+				const newCards: Card[] = [generateCards(this.data.value)[1]];
 
 				while (newCards.length + this.room.player.cards.length > 7) {
 					let elem: HTMLElement;
@@ -88,28 +117,62 @@ export default class LootChest extends Entity<Props> {
 					elem!.remove();
 				}
 
-				newCards.forEach(card =>this.room.player.addCard(card));
-				this.deactivate();
-			}
-			else {
-				this.room.player.updateCards();
-				this.deactivate();
-			}
-		});
+				newCards.forEach(card => this.room.player.addCard(card));
+				resumeTimeouts();
+				this.room.scene.scene.resume();
+				document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
 
-		pauseTimeouts();
-		this.room.scene.scene.pause();
-		document.getElementById('card-shelf')?.remove();
-		document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
+				break;
+			}
+		}
+
+
+	// 	const valueString = this.data.value === 1 ? 'Common' : this.data.value === 2 ? 'Rare' : 'Mythic';
+	// 	renderChoice(`Manifest ${valueString} Booster Pack?`,
+	// 		`Exchange ${this.data.cost} souls for a ${valueString} Booster Pack. Contains 3 random cards.`,
+	// 		'Exchange', 'Cancel', async (primary) => {
+
+	// 		if (primary) {
+	// 			this.room.player.setCurrency(this.room.player.getCurrency() - this.data.cost);
+	// 			this.room.entities.filter(e => e.type === 'loot_chest').forEach(e => e.destroy());
+
+	// 			const newCards: Card[] = generateCards(budgets[this.data.value as keyof typeof budgets]);
+	// 			document.querySelector('.choice-container')?.remove();
+
+	// 			while (newCards.length + this.room.player.cards.length > 7) {
+	// 				let elem: HTMLElement;
+	// 				await new Promise<void>((resolve) => {
+	// 					elem = renderCardSelector(this.room.player.cards, newCards, (player: boolean, ind: number) => {
+	// 						if (player) this.room.player.cards.splice(ind, 1);
+	// 						else newCards.splice(ind, 1);
+	// 						resolve();
+	// 					});
+	// 				});
+	// 				elem!.remove();
+	// 			}
+
+	// 			newCards.forEach(card =>this.room.player.addCard(card));
+	// 			this.deactivate();
+	// 		}
+	// 		else {
+	// 			this.room.player.updateCards();
+	// 			this.deactivate();
+	// 		}
+	// 	});
+
+	// 	pauseTimeouts();
+	// 	this.room.scene.scene.pause();
+	// 	document.getElementById('card-shelf')?.remove();
+	// 	document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
 	}
 
 	deactivate() {
-		resumeTimeouts();
-		this.room.scene.scene.resume();
-		document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
-		document.querySelector('.choice-container')?.remove();
+		// resumeTimeouts();
+		// this.room.scene.scene.resume();
+		// document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
+		// document.querySelector('.choice-container')?.remove();
 
-		setTimeout(() => this.active = false, 300);
+		setPausableTimeout(() => this.active = false, 300);
 		this.knockback();
 	}
 
@@ -119,7 +182,6 @@ export default class LootChest extends Entity<Props> {
 	}
 
 	destroy() {
-		this.text.destroy();
 		this.sprite.destroy();
 		this.room.destroyEntity(this);
 	}

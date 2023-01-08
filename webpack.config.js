@@ -23,6 +23,10 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
+  devServer: {
+    host: '0.0.0.0',
+    port: 8080
+  },
   output: {
     filename: 'main.js',
     path: path.resolve(__dirname, 'build'),

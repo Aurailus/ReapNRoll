@@ -15,6 +15,7 @@ export default class RoomScene extends Scene {
 	constructor() { super('room'); }
 
 	room: Room = null as any;
+	private lastTime = performance.now();
 
 	// private pauseEvent: ((evt: KeyboardEvent) => void) | null = null;
 
@@ -46,16 +47,13 @@ export default class RoomScene extends Scene {
 
 		// document.addEventListener('keydown', this.pauseEvent);
 
-		// this.player.addDice({ sides: 6, modifier: null, durability: 3 });
-		// this.player.addDice({ sides: 20, modifier: 'cursed', durability: 3 });
-		this.room.player.addDice({ sides: 16, modifier: 'weighted', durability: 3 });
-		// this.player.addDice({ sides: 20, modifier: null, durability: 3 });
-
 		this.cameras.main.startFollow(this.room.player.sprite, true, 1, 1);
 	}
 
-	update() {
-		this.room?.update(0.016);
+	update(time: number) {
+		const delta = (time - this.lastTime) / 1000;
+		this.room?.update(delta);
+		this.lastTime = time;
 	}
 
 	stop() {

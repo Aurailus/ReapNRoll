@@ -1,13 +1,10 @@
 import { Scene } from 'phaser';
 
 import player from '../../res/player.png';
-import tile_wall_dirt from '../../res/tile_low.png';
-import ground from '../../res/ground.png';
 import spike_off from '../../res/spike_off.png';
 import spike_on from '../../res/spike_on.png';
 import health_full from '../../res/health_full.png';
 import health_empty from '../../res/health_empty.png';
-import star from '../../res/star.png';
 import enemy from '../../res/enemy.png';
 import magic_missile_projectile from '../../res/magic_missile_projectile.png';
 import start_portal from '../../res/start_portal.png';
@@ -15,7 +12,35 @@ import end_portal from '../../res/end_portal.png';
 import soul from '../../res/soul.png';
 import loot_chest from '../../res/loot_chest.png';
 
-import room_1 from '../../res/room_1.png';
+import tile_blue from '../../res/tile_blue.png';
+import star_blue from '../../res/star_blue.png';
+import ground_blue from '../../res/ground_blue.png';
+
+import tile_purple from '../../res/tile_purple.png';
+import star_purple from '../../res/star_purple.png';
+import ground_purple from '../../res/ground_purple.png';
+
+import tile_red from '../../res/tile_red.png';
+import star_red from '../../res/star_red.png';
+import ground_red from '../../res/ground_red.png';
+
+import tile_orange from '../../res/tile_orange.png';
+import star_orange from '../../res/star_orange.png';
+import ground_orange from '../../res/ground_orange.png';
+
+import tile_yellow from '../../res/tile_yellow.png';
+import star_yellow from '../../res/star_yellow.png';
+import ground_yellow from '../../res/ground_yellow.png';
+
+import tile_green from '../../res/tile_green.png';
+import star_green from '../../res/star_green.png';
+import ground_green from '../../res/ground_green.png';
+
+import tile_teal from '../../res/tile_teal.png';
+import star_teal from '../../res/star_teal.png';
+import ground_teal from '../../res/ground_teal.png';
+
+import room_1 from '../../res/dungeon_1.png';
 import room_2 from '../../res/room_2.png';
 import room_souls from '../../res/room_souls.png';
 
@@ -23,20 +48,50 @@ import DungeonRoom, { readRoomFromImage, Entity } from '../DungeonRoom';
 
 export let ROOM_SOULS: DungeonRoom = null as any;
 export const ROOMS: DungeonRoom[] = [];
+export const MAP_COLORS = [ 'blue', 'purple', 'red', 'orange', 'yellow', 'green', 'teal' ];
 
 export default class LoadScene extends Scene {
 	constructor() { super('load'); }
 
 	preload() {
-		this.load.image('tile_wall_dirt', tile_wall_dirt);
+		this.load.image('tile_blue', tile_blue);
+		this.load.image('ground_blue', ground_blue);
+		this.load.spritesheet('star_blue', star_blue, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('tile_purple', tile_purple);
+		this.load.image('ground_purple', ground_purple);
+		this.load.spritesheet('star_purple', star_purple, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('tile_red', tile_red);
+		this.load.image('ground_red', ground_red);
+		this.load.spritesheet('star_red', star_red, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('tile_orange', tile_orange);
+		this.load.image('ground_orange', ground_orange);
+		this.load.spritesheet('star_orange', star_orange, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('tile_yellow', tile_yellow);
+		this.load.image('ground_yellow', ground_yellow);
+		this.load.spritesheet('star_yellow', star_yellow, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('tile_green', tile_green);
+		this.load.image('ground_green', ground_green);
+		this.load.spritesheet('star_green', star_green, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('tile_teal', tile_teal);
+		this.load.image('ground_teal', ground_teal);
+		this.load.spritesheet('star_teal', star_teal, { frameWidth: 16, frameHeight: 16 });
+
+		this.load.image('room_1', room_1);
+		this.load.image('room_2', room_2);
+		this.load.image('room_souls', room_souls);
+
 		this.load.image('enemy', enemy);
 		this.load.spritesheet('player', player, { frameWidth: 16, frameHeight: 16 });
 		this.load.image('spike_off', spike_off);
 		this.load.image('spike_on', spike_on);
 		this.load.image('health_full', health_full);
 		this.load.image('health_empty', health_empty);
-		this.load.image('tile_ground', ground);
-		this.load.spritesheet('star_particle', star, { frameWidth: 16, frameHeight: 16 });
 		this.load.image('magic_missile_projectile', magic_missile_projectile);
 		this.load.image('start_portal', start_portal);
 		this.load.image('end_portal', end_portal);
@@ -65,26 +120,30 @@ export default class LoadScene extends Scene {
 				data: {
 				}
 			}], [ 0xfff09d, {
-				type: 'loot_chest',
+				type: 'card_drop_chest',
 				pos: [ 0, 0 ],
 				data: {
 					value: 1,
 					cost: 5000
 				}
 			}], [ 0xffd900, {
-				type: 'loot_chest',
+				type: 'card_drop_chest',
 				pos: [ 0, 0 ],
 				data: {
 					value: 2,
 					cost: 10000
 				}
 			}], [ 0xffa448, {
-				type: 'loot_chest',
+				type: 'card_drop_chest',
 				pos: [ 0, 0 ],
 				data: {
 					value: 3,
 					cost: 20000
 				}
+			}], [ 0xad5800, {
+				type: 'loot_chest',
+				pos: [ 0, 0 ],
+				data: {}
 			}]
 		]);
 

@@ -78,6 +78,7 @@ canvas.spellcasting {
 	position: absolute;
 	top: -96px;
 	left: 50%;
+	white-space: pre;
 	transform: translateX(-50%);
 	font-family: sans-serif;
 	font-size: 32px;
@@ -188,6 +189,19 @@ canvas.spellcasting {
 	transform: translate(-50%, -50%);
 	font-family: sans-serif;
 	font-size: 256px;
+	font-weight: bold;
+	color: white;
+	margin: 0;
+	text-shadow: 0 2px 12px rgb(0 0 0 / .5), 0 1px 4px rgba(0 0 0 / .5);
+}
+
+.dice-text {
+	position: absolute;
+	top: 50vh;
+	left: 50vw;
+	transform: translate(-50%, -50%);
+	font-family: sans-serif;
+	font-size: 128px;
 	font-weight: bold;
 	color: white;
 	margin: 0;

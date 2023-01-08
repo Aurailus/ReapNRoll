@@ -99,7 +99,7 @@ export default class MeleeEnemy extends Enemy {
 			}
 		}
 
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction), vec2.scale(newVel, newVel, 1-friction));
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction * delta * (60/1)), vec2.scale(newVel, newVel, (1-friction)  * delta * (60/1)));
 
 		let lastPos = vec2.clone(this.pos);
 

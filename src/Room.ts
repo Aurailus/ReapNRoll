@@ -6,6 +6,7 @@ import EndPortal from './entities/EndPortal';
 import MeleeEnemy from './entities/MeleeEnemy';
 import Entity from './entities/Entity';
 import LootChest from './entities/LootChest';
+import CardDropChest from './entities/CardDropChest';
 import Spike from './entities/Spike';
 import StartPortal from './entities/StartPortal';
 import Timer from './entities/Timer';
@@ -14,6 +15,7 @@ import Player from './Player';
 import StarParticle from './StarParticle';
 import RangedEnemy from './entities/RangedEnemy';
 import { roundTo, clamp } from './Util';
+import { MAP_COLORS } from './scene/LoadScene';
 
 const TILE_TRANSFORMER = [ -1, 12, 10, 11, 2, 7, 13, 3, 0, 14, 5, 4, 1, 8, 9, 6 ];
 
@@ -22,7 +24,8 @@ const ENTITY_CONSTRUCTORS: Record<string, typeof Entity<any>> = {
 	spike: Spike,
 	melee_enemy: MeleeEnemy,
 	ranged_enemy: RangedEnemy,
-	loot_chest: LootChest
+	loot_chest: LootChest,
+	card_drop_chest: CardDropChest
 }
 
 export default class Room {
@@ -31,10 +34,12 @@ export default class Room {
 	readonly event = new EventEmitter();
 	private tileSprite: GameObjects.TileSprite;
 	private tilemap: Phaser.Tilemaps.Tilemap;
+	private color: string;
 
 	constructor(readonly scene: Phaser.Scene, readonly data: DungeonRoom, readonly player: Player) {
 		this.group = this.scene.add.group();
 		this.group.runChildUpdate = true;
+		this.color = MAP_COLORS[Math.floor(Math.random() * MAP_COLORS.length)];
 
 		let tiles = [];
 		for (let i = 1; i < this.data.size[1]; i++) {
@@ -61,10 +66,10 @@ export default class Room {
 
 		this.tileSprite = this.scene.add.tileSprite(0, 0,
 			(this.scene.game.config.width as number / 4) + 128,
-			(this.scene.game.config.height as number / 4) + 128, 'tile_ground').setOrigin(0);
+			(this.scene.game.config.height as number / 4) + 128, 'ground_' + this.color).setOrigin(0);
 
-		this.tilemap.addTilesetImage('tile_wall_dirt');
-		let layer = this.tilemap.createLayer(0, 'tile_wall_dirt', -8, -8);
+		this.tilemap.addTilesetImage('tile_' + this.color);
+		let layer = this.tilemap.createLayer(0, 'tile_' + this.color, -8, -8);
 		this.group.add(layer, true);
 
 		this.entities.push(new StartPortal(this, this.data.start, {}));
@@ -96,7 +101,7 @@ export default class Room {
 
 			let tileIndex = this.tilemap.getTileAt(randPos[0], randPos[1])?.index;
 			if (tileIndex === 6) {
-				this.scene.add.existing(new StarParticle(this.scene, randPos));
+				this.scene.add.existing(new StarParticle(this.scene, randPos, this.color));
 			}
 		}
 	}

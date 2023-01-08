@@ -65,12 +65,15 @@ export default class Player {
 		this.room = room;
 		this.room.scene.add.existing(this.sprite);
 
+		const dvorak = window.localStorage.getItem('dvorak') !== null;
+
 		this.keys = {
 			left: this.scene.input.keyboard.addKey(Input.Keyboard.KeyCodes.A),
-			right: this.scene.input.keyboard.addKey(Input.Keyboard.KeyCodes.E),
-			up: this.scene.input.keyboard.addKey(Input.Keyboard.KeyCodes.COMMA),
-			down: this.scene.input.keyboard.addKey(Input.Keyboard.KeyCodes.O),
+			right: this.scene.input.keyboard.addKey(dvorak ? Input.Keyboard.KeyCodes.E : Input.Keyboard.KeyCodes.D),
+			up: this.scene.input.keyboard.addKey(dvorak ? Input.Keyboard.KeyCodes.COMMA : Input.Keyboard.KeyCodes.W),
+			down: this.scene.input.keyboard.addKey(dvorak ? Input.Keyboard.KeyCodes.O : Input.Keyboard.KeyCodes.S),
 		}
+
 
 		this.scene.input.keyboard.on('keydown', (evt: KeyboardEvent) => {
 			const num = Number.parseInt(evt.key, 10);
@@ -114,12 +117,12 @@ export default class Player {
 		this.dodgeTime = Math.max(this.dodgeTime - delta, 0);
 
 		vec2.scale(newVel, vec2.normalize(newVel, newVel), speed);
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction), vec2.scale(newVel, newVel, 1-friction));
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction*delta*(60/1)), vec2.scale(newVel, newVel, (1-friction)*delta*(60/1)));
 
 		let currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
 			this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
 
-		let totalVel = this.vel[0];
+		let totalVel = this.vel[0] * delta * (60/1);
 		while (Math.abs(totalVel) > 0) {
 			let offsetX = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(offsetX, 0, offsetX, 0)), this.room.data)) {
@@ -130,7 +133,7 @@ export default class Player {
 			totalVel = Math.sign(totalVel) * Math.max(Math.abs(totalVel) - 1, 0);
 		}
 
-		totalVel = this.vel[1];
+		totalVel = this.vel[1] * delta * (60/1);
 		while (Math.abs(totalVel) > 0) {
 			let offsetY = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(0, offsetY, 0, offsetY)), this.room.data)) {

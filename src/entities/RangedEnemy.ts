@@ -115,7 +115,7 @@ export default class RangedEnemy extends Enemy {
 			}
 		}
 
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction), vec2.scale(newVel, newVel, 1-friction));
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction * delta * (60/1)), vec2.scale(newVel, newVel, (1-friction)  * delta * (60/1)));
 
 		let lastPos = vec2.clone(this.pos);
 
@@ -136,7 +136,6 @@ export default class RangedEnemy extends Enemy {
 			this.attackCooldownTime = 3;
 			this.noControlTime = 0.5;
 			this.room.entities.push(new RangedEnemyProjectile(this.room, vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)), { damage: 2 }));
-			console.log('FIRE ARROW');
 		}
 	}
 

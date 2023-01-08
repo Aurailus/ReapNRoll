@@ -45,9 +45,7 @@ export default abstract class Enemy extends Entity<Props> {
 		let currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
 			this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
 
-			// TODO: Use delta to influence velocity
-
-		let totalVel = this.vel[0];
+		let totalVel = this.vel[0]  * delta * (60/1);;
 		while (Math.abs(totalVel) > 0) {
 			let offsetX = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(offsetX, 0, offsetX, 0)), this.room.data)) {
@@ -58,7 +56,7 @@ export default abstract class Enemy extends Entity<Props> {
 			totalVel = Math.sign(totalVel) * Math.max(Math.abs(totalVel) - 1, 0);
 		}
 
-		totalVel = this.vel[1];
+		totalVel = this.vel[1]  * delta * (60/1);;
 		while (Math.abs(totalVel) > 0) {
 			let offsetY = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(0, offsetY, 0, offsetY)), this.room.data)) {
