@@ -50,7 +50,7 @@ export default class RangedEnemy extends Enemy {
 			this.sprite.anims.play('idle');
 		}
 
-		const friction = 0.6;
+		const friction = 0.3;
 		const scaledFriction = clamp(friction * (delta * 60), 0, 1)
 		let newVel = vec2.create();
 
@@ -124,7 +124,7 @@ export default class RangedEnemy extends Enemy {
 			}
 		}
 
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, scaledFriction), vec2.scale(newVel, newVel, (1-scaledFriction)));
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, 1-scaledFriction), vec2.scale(newVel, newVel, scaledFriction));
 
 		if (this.lastVelLen > 0.1) {
 			if (this.sprite.anims.currentAnim?.key === 'idle' || !this.sprite.anims.isPlaying) this.sprite.anims.play('walk');

@@ -105,7 +105,7 @@ export default class Player {
 
 	update(delta: number) {
 		const speed = 2;
-		const friction = 0.6;
+		const friction = 0.3;
 
 		let newVel = vec2.create();
 
@@ -142,7 +142,7 @@ export default class Player {
 		}
 
 		vec2.scale(newVel, vec2.normalize(newVel, newVel), speed);
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, scaledFriction), vec2.scale(newVel, newVel, (1-scaledFriction)));
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, 1-scaledFriction), vec2.scale(newVel, newVel, (scaledFriction)));
 
 		let currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
 			this.pos[0] + this.size[0] /2, this.pos[1] + this.size[1] / 2);
@@ -204,7 +204,7 @@ export default class Player {
 		const diff = vec2.sub(vec2.create(), mousePos,
 		vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
 		this.sprite.anims.setProgress(0);
-		this.scene.sound.play('attack', { volume: 0.5 });
+		this.sprite.anims.play('attack');
 
 		const angle = Math.atan2(diff[1], diff[0]);
 		const variance = Math.PI / 2;
@@ -394,7 +394,8 @@ export default class Player {
 		const mousePos = vec2.fromValues(mouseX, mouseY);
 		const diff = vec2.sub(vec2.create(), mousePos, this.pos);
 		vec2.normalize(diff, diff);
-		vec2.scale(diff, diff, 40);
+		vec2.scale(diff, diff, 20);
+		this.sprite.scaleX = diff[0] < 0 ? 1 : -1;
 		this.vel = diff;
 	}
 

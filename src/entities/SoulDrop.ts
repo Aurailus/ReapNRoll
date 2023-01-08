@@ -24,14 +24,14 @@ export default class StartPortal extends Entity<{}> {
 	}
 
 	update(delta: number) {
-		const friction = 0.85;
+		const friction = 0.15;
 		const scaledFriction = clamp(friction * (delta * 60), 0, 1)
 
 		this.lifetime += delta;
 		const newVel = vec2.sub(vec2.create(), this.room.player.pos, this.pos);
 		vec2.normalize(newVel, newVel);
 		vec2.scale(newVel, newVel, this.lifetime * 100);
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, scaledFriction), vec2.scale(newVel, newVel, 1-scaledFriction));
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, 1-scaledFriction), vec2.scale(newVel, newVel, scaledFriction));
 		vec2.add(this.pos, this.pos, vec2.scale(vec2.create(), this.vel, delta));
 
 		this.sprite.setAlpha(Math.min((this.lifetime - 1), 0.5) + .5);
