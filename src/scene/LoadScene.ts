@@ -1,11 +1,12 @@
 import { Scene } from 'phaser';
 
-import player from '../../res/player.png';
+import reaper from '../../res/reaper.png';
 import spike_off from '../../res/spike_off.png';
 import spike_on from '../../res/spike_on.png';
 import health_full from '../../res/health_full.png';
 import health_empty from '../../res/health_empty.png';
-import enemy from '../../res/enemy.png';
+import melee from '../../res/melee.png';
+import ranged from '../../res/ranged.png';
 import magic_missile_projectile from '../../res/magic_missile_projectile.png';
 import start_portal from '../../res/start_portal.png';
 import end_portal from '../../res/end_portal.png';
@@ -40,8 +41,11 @@ import tile_teal from '../../res/tile_teal.png';
 import star_teal from '../../res/star_teal.png';
 import ground_teal from '../../res/ground_teal.png';
 
-import room_1 from '../../res/dungeon_1.png';
-import room_2 from '../../res/room_2.png';
+import dungeon_1 from '../../res/dungeon_1.png';
+import dungeon_2 from '../../res/dungeon_2.png';
+import dungeon_3 from '../../res/dungeon_3.png';
+import dungeon_4 from '../../res/dungeon_4.png';
+import dungeon_5 from '../../res/dungeon_5.png';
 import room_souls from '../../res/room_souls.png';
 
 import DungeonRoom, { readRoomFromImage, Entity } from '../DungeonRoom';
@@ -82,12 +86,9 @@ export default class LoadScene extends Scene {
 		this.load.image('ground_teal', ground_teal);
 		this.load.spritesheet('star_teal', star_teal, { frameWidth: 16, frameHeight: 16 });
 
-		this.load.image('room_1', room_1);
-		this.load.image('room_2', room_2);
-		this.load.image('room_souls', room_souls);
-
-		this.load.image('enemy', enemy);
-		this.load.spritesheet('player', player, { frameWidth: 16, frameHeight: 16 });
+		this.load.spritesheet('reaper', reaper, { frameWidth: 16, frameHeight: 16})
+		this.load.spritesheet('melee', melee, { frameWidth: 16, frameHeight: 16})
+		this.load.spritesheet('ranged', ranged, { frameWidth: 16, frameHeight: 16})
 		this.load.image('spike_off', spike_off);
 		this.load.image('spike_on', spike_on);
 		this.load.image('health_full', health_full);
@@ -150,34 +151,11 @@ export default class LoadScene extends Scene {
 		ROOM_SOULS = await readRoomFromImage(room_souls, objMap);
 
 		ROOMS.push(...(await Promise.all([
-			readRoomFromImage(room_1, objMap).then(room => {
-				room.entities.push({
-					type: 'timer',
-					pos: [ 0, 0 ],
-					data: {
-						out: 'deactivate',
-						delay: 1000
-					}
-				}, {
-					type: 'timer',
-					pos: [ 0, 0 ],
-					data: {
-						in: 'activate',
-						out: 'deactivate',
-						delay: 1000
-					}
-				}, {
-					type: 'timer',
-					pos: [ 0, 0 ],
-					data: {
-						in: 'deactivate',
-						out: 'activate',
-						delay: 1000
-					}
-				});
-				return room;
-			}),
-			readRoomFromImage(room_2, objMap)
+			readRoomFromImage(dungeon_1, objMap),
+			readRoomFromImage(dungeon_2, objMap),
+			readRoomFromImage(dungeon_3, objMap),
+			readRoomFromImage(dungeon_4, objMap),
+			readRoomFromImage(dungeon_5, objMap)
 		])));
 
 		this.scene.start('room', { room: ROOMS[0] });

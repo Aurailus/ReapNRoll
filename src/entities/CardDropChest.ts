@@ -1,10 +1,9 @@
-import { vec2, vec4 } from 'gl-matrix';
+import { vec2 } from 'gl-matrix';
 
 import Room from '../Room';
 import Entity from './Entity';
 import { Card, generateCards } from '../card/Card';
 import { renderCardSelector, renderChoice } from '../CardRenderer';
-import setPausableTimeout, { pauseTimeouts, resumeTimeouts } from '../PauseableTimeout';
 
 export interface Props {
 	value: number;
@@ -63,7 +62,6 @@ export default class CardDropChest extends Entity<Props> {
 	}
 
 	activate() {
-		pauseTimeouts();
 		this.room.scene.scene.pause();
 		document.getElementById('card-shelf')?.remove();
 		document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
@@ -75,7 +73,7 @@ export default class CardDropChest extends Entity<Props> {
 
 			if (primary) {
 				this.room.player.setCurrency(this.room.player.getCurrency() - this.data.cost);
-				this.room.entities.filter(e => e.type === 'loot_chest').forEach(e => e.destroy());
+				this.room.entities.filter(e => e.type === 'card_drop_chest').forEach(e => e.destroy());
 
 				const newCards: Card[] = generateCards(budgets[this.data.value as keyof typeof budgets]);
 				document.querySelector('.choice-container')?.remove();
@@ -103,12 +101,11 @@ export default class CardDropChest extends Entity<Props> {
 	}
 
 	deactivate() {
-		resumeTimeouts();
 		this.room.scene.scene.resume();
 		document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
 		document.querySelector('.choice-container')?.remove();
 
-		setPausableTimeout(() => this.active = false, 300);
+		this.room.scene.time.addEvent({ callback: () => this.active = false, delay: 300 });
 		this.knockback();
 	}
 

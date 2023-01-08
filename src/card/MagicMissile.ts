@@ -18,8 +18,8 @@ const card: CardType = {
 	},
 	cast: (data, { room, target }) => {
 		let enemies = room.entities.filter(isEnemy).sort((a, b) => {
-			let aDist = vec2.distance(vec2.add(vec2.create(), a.pos, vec2.scale(vec2.create(), a.size, 0.5)), target);
-			let bDist = vec2.distance(vec2.add(vec2.create(), b.pos, vec2.scale(vec2.create(), b.size, 0.5)), target);
+			let aDist = vec2.distance(a.pos, target);
+			let bDist = vec2.distance(b.pos, target);
 			return aDist - bDist;
 		});
 

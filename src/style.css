@@ -344,3 +344,55 @@ canvas.spellcasting {
 .card-selector .new-cards {
 	margin-bottom: 24px;
 }
+
+.death-display {
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	top: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+}
+
+.death-display .title {
+	color: white;
+	font-family: sans-serif;
+	font-weight: bold;
+	font-size: 48px;
+	margin: 0;
+}
+
+.death-display .description {
+	color: rgba(255, 255, 255, 0.8);
+	font-family: sans-serif;
+	font-size: 22px;
+	font-weight: bold;
+}
+
+.death-display .buttons {
+	display: flex;
+	gap: 32px;
+	margin-top: 16px;
+}
+
+.death-display button {
+	padding: 16px 24px;
+	font-size: 24px;
+	font-weight: bold;
+	background: linear-gradient(-20deg, #931fff 0%, #678cff 100%);
+	color: white;
+	border-radius: 2px;
+	border: none;
+	cursor: unset;
+	will-change: transform;
+
+	transition: filter 0.075s, transform 0.075s;
+}
+
+.death-display button:hover {
+	filter: brightness(130%) saturate(120%);
+	transform: scale(1.05);
+}

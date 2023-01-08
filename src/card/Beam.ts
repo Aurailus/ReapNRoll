@@ -2,7 +2,6 @@ import { CardType } from './Card';
 
 import { vec2 } from 'gl-matrix';
 import Enemy from '../entities/Enemy';
-import setPausableTimeout from '../PauseableTimeout';
 
 import card_image from '../../res/card_image.png';
 import { isEnemy } from './Fireball';
@@ -23,28 +22,27 @@ const card: CardType = {
 	description: 'Fires a beam towards the target, dealing %1% damage to everything in its path.',
 	rolls: [ '2x+16' ],
 	cast: (data, { room, target }) => {
-		let direction = vec2.sub(vec2.create(), target, vec2.add(vec2.create(),
-			room.player.pos, vec2.scale(vec2.create(), room.player.size, 0.5)));
+		let direction = vec2.sub(vec2.create(), target, room.player.pos);
 		vec2.normalize(direction, direction);
 
 		let totalDamage = 0;
 
 		let tangentLine = vec2.rotate(vec2.create(), direction, vec2.create(), Math.PI / 2);
 
-		let line = room.scene.add.line(room.player.pos[0] + room.player.size[0] / 2 - direction[0] * 500,
-			room.player.pos[1] + room.player.size[1] / 2 - direction[1] * 500, 0, 0, direction[0] * 1000, direction[1] * 1000, 0xff0000, 0.3).setOrigin(0).setLineWidth(10);
-		setPausableTimeout(() => line.destroy(), 200);
+		let line = room.scene.add.line(room.player.pos[0] - direction[0] * 500,
+			room.player.pos[1] - direction[1] * 500, 0, 0, direction[0] * 1000, direction[1] * 1000, 0xff0000, 0.3).setOrigin(0).setLineWidth(10);
+		room.scene.time.addEvent({ callback: () => line.destroy(), delay: 200 });
 
 		room.entities
 			.filter<Enemy>(isEnemy)
 			.filter(enemy => {
-				const enemyPos = vec2.fromValues(enemy.pos[0] + enemy.size[0] / 2, enemy.pos[1] + enemy.size[1] / 2);
+				const enemyPos = vec2.fromValues(enemy.pos[0], enemy.pos[1]);
 				const intersectPos = lineIntersection(enemyPos, tangentLine, target, direction)!;
 				const distance = vec2.dist(intersectPos, enemyPos);
 				return distance < 32;
 			})
 			.map(enemy => {
-				const enemyPos = vec2.fromValues(enemy.pos[0] + enemy.size[0] / 2, enemy.pos[1] + enemy.size[1] / 2);
+				const enemyPos = vec2.fromValues(enemy.pos[0], enemy.pos[1]);
 				const intersectPos = lineIntersection(enemyPos, tangentLine, target, direction)!;
 				let diff = vec2.sub(vec2.create(), enemyPos, intersectPos);
 				vec2.normalize(diff, diff);

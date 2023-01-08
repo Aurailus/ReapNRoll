@@ -25,12 +25,10 @@ export default class MagicMissileProjectile extends Entity<Props> {
 	update(delta: number) {
 		if (this.speed < 1) this.speed = Math.min(this.speed + delta * 1000 * 100, 500);
 
-		const targetPos = vec2.add(vec2.create(), this.data.target.pos, vec2.scale(vec2.create(), this.data.target.size, 0.5));
-
-		const diff = vec2.sub(vec2.create(), targetPos, vec2.fromValues(this.sprite.x, this.sprite.y));
+		const diff = vec2.sub(vec2.create(), this.data.target.pos, vec2.fromValues(this.sprite.x, this.sprite.y));
 		vec2.normalize(diff, diff);
 
-		if (vec2.dist(vec2.fromValues(this.sprite.x, this.sprite.y), targetPos) < this.speed * delta) {
+		if (vec2.dist(vec2.fromValues(this.sprite.x, this.sprite.y), this.data.target.pos) < this.speed * delta) {
 			vec2.scale(diff, diff, 15);
 			this.data.target.damage(this.data.damage, diff);
 			this.destroy();

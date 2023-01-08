@@ -32,7 +32,7 @@ export default abstract class Enemy extends Entity<Props> {
 	constructor(room: Room, tilePos: vec2, data: Props) {
 		super(room, tilePos, data);
 		this.pos = vec2.scale(vec2.create(), tilePos, 16);
-		this.sprite = this.room.scene.add.sprite(this.pos[0], this.pos[1], 'enemy').setOrigin(0);
+		this.sprite = this.room.scene.add.sprite(this.pos[0], this.pos[1], 'enemy');
 		this.health = this.data.health ?? this.getStartingHealth();
 		ENEMIES.add(this);
 	}
@@ -42,16 +42,16 @@ export default abstract class Enemy extends Entity<Props> {
 		this.noControlTime = Math.max(0, this.noControlTime - delta);
 		this.attackCooldownTime = Math.max(0, this.attackCooldownTime - delta);
 
-		let currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
-			this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+		let currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
+			this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
 
 		let totalVel = this.vel[0]  * delta * (60/1);;
 		while (Math.abs(totalVel) > 0) {
 			let offsetX = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(offsetX, 0, offsetX, 0)), this.room.data)) {
 				this.setPosition(vec2.fromValues(this.pos[0] + offsetX, this.pos[1]));
-				currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
-					this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+				currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
+					this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
 			}
 			totalVel = Math.sign(totalVel) * Math.max(Math.abs(totalVel) - 1, 0);
 		}
@@ -61,8 +61,8 @@ export default abstract class Enemy extends Entity<Props> {
 			let offsetY = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(0, offsetY, 0, offsetY)), this.room.data)) {
 				this.setPosition(vec2.fromValues(this.pos[0], this.pos[1] + offsetY));
-				currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
-					this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+				currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
+					this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
 			}
 			totalVel = Math.sign(totalVel) * Math.max(Math.abs(totalVel) - 1, 0);
 		}
@@ -82,7 +82,7 @@ export default abstract class Enemy extends Entity<Props> {
 	}
 
 	getBounds(): vec4 {
-		return vec4.fromValues(this.pos[0], this.pos[1], this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+		return vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2, this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
 	}
 
 	damage(amount: number, knockback: vec2 = vec2.create()) {
@@ -94,10 +94,13 @@ export default abstract class Enemy extends Entity<Props> {
 		this.noControlTime = 0.4;
 
 		this.room.scene.add.existing(new StatusText(this.room.scene, vec2.fromValues(
-			this.pos[0] + this.size[0] / 2, this.pos[1] - 4), amount));
+			this.pos[0], this.pos[1] - 4), amount));
+
+			this.sprite.anims?.play('stumble');
+			this.sprite.scaleX = knockback[0] < 1 ? -1 : 1;
 
 		if (this.health <= 0) {
-			this.killTime = 0.1;
+			this.killTime = 0.3;
 			vec2.scale(this.vel, this.vel, 1.5);
 		}
 	}
@@ -111,7 +114,7 @@ export default abstract class Enemy extends Entity<Props> {
 	}
 
 	getSoulAmount(): number {
-		return 300;
+		return 200;
 	}
 
 	getStartingHealth(): number {

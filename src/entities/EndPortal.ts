@@ -1,4 +1,5 @@
 import { vec2 } from 'gl-matrix';
+import DungeonRoom from '../DungeonRoom';
 
 import Room from '../Room';
 import { ROOMS, ROOM_SOULS } from '../scene/LoadScene';
@@ -19,12 +20,17 @@ export default class EndPortal extends Entity<{}> {
 	}
 
 	update() {
-		const playerPos = vec2.add(vec2.create(), this.room.player.pos,
-			vec2.scale(vec2.create(), this.room.player.size, 0.5));
+		if (vec2.dist(this.room.player.pos, this.pos) < 24 && this.active) {
+			let nextRoom: DungeonRoom;
 
-		if (vec2.dist(playerPos, this.pos) < 24 && this.active) {
-			// const nextRoom = ROOMS[ROOMS.indexOf(this.room.data) + 1];
-			const nextRoom = ROOM_SOULS;
+			if (this.room.data === ROOM_SOULS) {
+				const roomOptions = [ ...ROOMS ];
+				roomOptions.splice(ROOMS.indexOf(this.room.data), 1);
+				nextRoom = roomOptions[Math.floor(Math.random() * roomOptions.length)];
+			}
+			else {
+				nextRoom = ROOM_SOULS;
+			}
 
 			this.room.scene.scene.start('room', { player: this.room.player, room: nextRoom });
 			this.active = false;

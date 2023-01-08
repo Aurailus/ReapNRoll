@@ -10,9 +10,9 @@ import { renderCards, renderCurrency, renderDiceChooser, renderHealth } from './
 
 import cursor_normal from '../res/cursor_normal_scaled.png';
 import cursor_spell from '../res/cursor_spell_scaled.png';
-import setPausableTimeout, { pauseTimeouts, resumeTimeouts } from './PauseableTimeout';
 import Room from './Room';
 import StatusText from './StatusText';
+import { clamp } from './Util';
 
 export default class Player {
 	sprite: GameObjects.Sprite = null as any;
@@ -39,7 +39,7 @@ export default class Player {
 
 	cards: Card[] = [];
 	dice:  Dice[] = [];
-	private currency = 30000;
+	private currency = 1000;
 	private defaultDice: Dice = { sides: 12, modifier: null, durability: null };
 	private activeCard: number | null = null;
 
@@ -60,7 +60,11 @@ export default class Player {
 	}
 
 	setRoom(room: Room) {
-		this.sprite = this.scene.add.sprite(this.pos[0], this.pos[1], 'player').setOrigin(0).setDepth(10);
+		this.sprite = this.scene.add.sprite(this.pos[0], this.pos[1], 'player').setDepth(10);
+
+		this.sprite.anims.create({ key: 'idle', repeat: -1, frameRate: 6, frames: [ { key: 'reaper', frame: 0 } ] });
+		this.sprite.anims.create({ key: 'walk', repeat: -1, frameRate: 9, frames: [ { key: 'reaper', frame: 0 }, { key: 'reaper', frame: 1 }, { key: 'reaper', frame: 2 }, { key: 'reaper', frame: 3 } ] });
+		this.sprite.anims.create({ key: 'attack', repeat: 0, frameRate: 9, frames: [ { key: 'reaper', frame: 4 }, { key: 'reaper', frame: 5 }, { key: 'reaper', frame: 6 },  { key: 'reaper', frame: 7 } ] });
 
 		this.room = room;
 		this.room.scene.add.existing(this.sprite);
@@ -86,8 +90,8 @@ export default class Player {
 			if (evt.button === 0 && this.attackCooldown === 0) {
 				this.clicked = true;
 				if (this.activeCard === null) {
-					const timeout = setPausableTimeout(() => this.charged = true, 350);
-					this.scene.input.once('pointerup', () => timeout.kill());
+					const evt = this.room.scene.time.addEvent({ delay: 350, callback: () => this.charged = true });
+					this.scene.input.once('pointerup', () => this.room.scene.time.removeEvent(evt));
 				}
 			}
 			else if (evt.button === 2 && this.dodgeCooldown === 0) {
@@ -116,19 +120,37 @@ export default class Player {
 		this.attackCooldown = Math.max(this.attackCooldown - delta, 0);
 		this.dodgeTime = Math.max(this.dodgeTime - delta, 0);
 
-		vec2.scale(newVel, vec2.normalize(newVel, newVel), speed);
-		vec2.add(this.vel, vec2.scale(this.vel, this.vel, friction*delta*(60/1)), vec2.scale(newVel, newVel, (1-friction)*delta*(60/1)));
+		const scaledFriction = clamp(friction * (delta * 60), 0, 1)
 
-		let currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
-			this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+		if (Math.abs(newVel[0]) + Math.abs(newVel[1]) > 0) {
+			if (this.sprite.anims.currentAnim?.key === 'idle' || !this.sprite.anims.isPlaying)
+				this.sprite.anims.play('walk');
+		}
+		else {
+			if (this.sprite.anims.currentAnim?.key === 'walk' || !this.sprite.anims.isPlaying)
+				this.sprite.anims.play('idle');
+		}
+
+		if (newVel[0] > 0) {
+			this.sprite.scaleX = -1;
+		}
+		else if (newVel[0] < 0) {
+			this.sprite.scaleX = 1;
+		}
+
+		vec2.scale(newVel, vec2.normalize(newVel, newVel), speed);
+		vec2.add(this.vel, vec2.scale(this.vel, this.vel, scaledFriction), vec2.scale(newVel, newVel, (1-scaledFriction)));
+
+		let currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
+			this.pos[0] + this.size[0] /2, this.pos[1] + this.size[1] / 2);
 
 		let totalVel = this.vel[0] * delta * (60/1);
 		while (Math.abs(totalVel) > 0) {
 			let offsetX = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(offsetX, 0, offsetX, 0)), this.room.data)) {
 				this.setPosition(vec2.fromValues(this.pos[0] + offsetX, this.pos[1]));
-				currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
-					this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+				currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
+					this.pos[0] + this.size[0] /2, this.pos[1] + this.size[1] / 2);
 			}
 			totalVel = Math.sign(totalVel) * Math.max(Math.abs(totalVel) - 1, 0);
 		}
@@ -138,8 +160,8 @@ export default class Player {
 			let offsetY = Math.sign(totalVel) * Math.min(Math.abs(totalVel), 1);
 			if (!collides(vec4.add(vec4.create(), currentBounds, vec4.fromValues(0, offsetY, 0, offsetY)), this.room.data)) {
 				this.setPosition(vec2.fromValues(this.pos[0], this.pos[1] + offsetY));
-				currentBounds = vec4.fromValues(this.pos[0], this.pos[1],
-					this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+				currentBounds = vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2,
+					this.pos[0] + this.size[0] /2, this.pos[1] + this.size[1] / 2);
 			}
 			totalVel = Math.sign(totalVel) * Math.max(Math.abs(totalVel) - 1, 0);
 		}
@@ -177,7 +199,9 @@ export default class Player {
 		.positionToCamera(this.scene.cameras.main) as Phaser.Math.Vector2;
 		const mousePos = vec2.fromValues(mouseX, mouseY);
 		const diff = vec2.sub(vec2.create(), mousePos,
-			vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
+		vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
+		this.sprite.anims.setProgress(0);
+		this.sprite.anims.play('attack');
 
 		const angle = Math.atan2(diff[1], diff[0]);
 		const variance = Math.PI / 2;
@@ -188,19 +212,19 @@ export default class Player {
 		this.attackCooldown = 0.2;
 
 		this.sprite.setFrame(1);
-		setPausableTimeout(() => this.sprite.setFrame(0), 100);
+		this.scene.time.addEvent({ delay: 100, callback: () => this.sprite.setFrame(0) });
 
 		for (let i = 0; i < steps; i++) {
 			const thisAngle = angle + (variance * ((i - steps / 2) / steps));
-			const originPos = vec2.fromValues(this.pos[0] + this.size[0] / 2 + Math.cos(thisAngle) * distance,
-				this.pos[1] + this.size[1] / 2 + Math.sin(thisAngle) * distance);
+			const originPos = vec2.fromValues(this.pos[0] + Math.cos(thisAngle) * distance,
+				this.pos[1] + Math.sin(thisAngle) * distance);
 			const bounds = vec4.fromValues(originPos[0] - radius, originPos[1] - radius,
 				originPos[0] + radius, originPos[1] + radius);
 
 			for (let enemy of ENEMIES) {
 				if (!intersects(bounds, enemy.getBounds())) continue;
-				const kb = vec2.fromValues(this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
-				vec2.sub(kb, vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)), kb);
+				const kb = vec2.fromValues(this.pos[0], this.pos[1]);
+				vec2.sub(kb, enemy.pos, kb);
 				vec2.normalize(kb, kb);
 				vec2.scale(kb, kb, 7);
 				enemy.damage(10, kb);
@@ -219,7 +243,6 @@ export default class Player {
 
 		document.getElementById('card-shelf')?.remove();
 		document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
-		pauseTimeouts();
 		this.scene.scene.pause();
 
 		let oldDice = JSON.parse(JSON.stringify(this.dice));
@@ -290,12 +313,14 @@ export default class Player {
 						this.noControlTime = 1;
 					}
 					else if (card.modifier === 'ravenous') {
-						this.damage(2);
+						this.damage(2, vec2.create(), true);
 					}
 					else if (card.modifier === 'vampiric') {
 						const healAmount = Math.floor(res.damage / 20);
 						if (healAmount) this.heal(healAmount);
 					}
+					this.sprite.anims.setProgress(0);
+					this.sprite.anims.play('attack');
 
 					resolve();
 				}, 200);
@@ -308,10 +333,7 @@ export default class Player {
 		}
 
 		this.updateCards();
-		setTimeout(() => {
-			this.scene.scene.resume();
-			resumeTimeouts();
-		}, 200);
+		setTimeout(() => this.scene.scene.resume(), 200);
 		document.getElementById('dice-chooser')?.remove();
 		document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
 
@@ -323,12 +345,14 @@ export default class Player {
 		this.attackCooldown = 0.5;
 		const radius = 2.5 * 16;
 
+		this.sprite.anims.setProgress(0);
+		this.sprite.anims.play('attack');
 		this.sprite.setFrame(2);
-		setPausableTimeout(() => this.sprite.setFrame(0), 100);
+		this.scene.time.addEvent({ delay: 100, callback: () => this.sprite.setFrame(0) });
 
-	// 	const circle = this.scene.add.circle(this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2,
-	// 	radius, 0xff0000, 0.3);
-	// setPausableTimeout(() => circle.destroy(), 100);
+		const circle = this.scene.add.circle(this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2,
+		radius, 0xff0000, 0.3);
+		this.scene.time.addEvent({ callback: () => circle.destroy(), delay: 100 });
 
 		for (let enemy of ENEMIES) {
 			if (vec2.dist(vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)),
@@ -353,13 +377,14 @@ export default class Player {
 		this.dodgeTime = 0.2;
 		this.invincibilityTime = 0.3;
 		this.sprite.setFrame(3);
-		setPausableTimeout(() => this.sprite.setFrame(0), 300);
+		this.scene.time.addEvent({ delay: 300, callback: () => this.sprite.setFrame(0) });
+		this.sprite.anims.setProgress(0);
+		this.sprite.anims.play('attack');
 
 		const { x: mouseX, y: mouseY } = this.scene.input.mousePointer
 			.positionToCamera(this.scene.cameras.main) as Phaser.Math.Vector2;
 		const mousePos = vec2.fromValues(mouseX, mouseY);
-		const diff = vec2.sub(vec2.create(), mousePos,
-			vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
+		const diff = vec2.sub(vec2.create(), mousePos, this.pos);
 		vec2.normalize(diff, diff);
 		vec2.scale(diff, diff, 40);
 		this.vel = diff;
@@ -371,17 +396,15 @@ export default class Player {
 
 		enemiesColliding.forEach(enemy => {
 			this.dodgeHit.push(enemy);
-			const kb = vec2.sub(vec2.create(),
-				vec2.add(vec2.create(), enemy.pos, vec2.scale(vec2.create(), enemy.size, 0.5)),
-				vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
+			const kb = vec2.sub(vec2.create(), enemy.pos, this.pos);
 			vec2.normalize(kb, kb);
 			vec2.scale(kb, kb, 7);
 			enemy.damage(5, kb);
 		});
 	}
 
-	damage(amount: number, knockback: vec2 = vec2.create()) {
-		if (this.invincibilityTime > 0) return;
+	damage(amount: number, knockback: vec2 = vec2.create(), force: boolean = false) {
+		if (this.invincibilityTime > 0 && !force) return;
 
 		this.health = Math.max(this.health - amount, 0);
 		this.vel = knockback;
@@ -397,7 +420,7 @@ export default class Player {
 		this.health = Math.min(this.health + amount, this.maxHealth);
 
 		this.room.scene.add.existing(new StatusText(this.room.scene, vec2.fromValues(
-			this.pos[0] + this.size[0] / 2, this.pos[1] - 4), amount, '#16abff'));
+			this.pos[0], this.pos[1] - 4), amount, '#16abff'));
 
 		this.invincibilityTime = 0.2;
 		this.updateHealth();
@@ -424,11 +447,11 @@ export default class Player {
 
 		if (this.health > 0) return;
 
-		console.error('you died looser');
+		this.scene.scene.start('death');
 	}
 
 	getBounds(): vec4 {
-		return vec4.fromValues(this.pos[0], this.pos[1], this.pos[0] + this.size[0], this.pos[1] + this.size[1]);
+		return vec4.fromValues(this.pos[0] - this.size[0] / 2, this.pos[1] - this.size[1] / 2, this.pos[0] + this.size[0] / 2, this.pos[1] + this.size[1] / 2);
 	}
 
 	addCard(card: Card): boolean {

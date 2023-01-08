@@ -197,3 +197,25 @@ export function renderChoice(title: string, description: string, primary: string
 
 	return choiceContainer;
 }
+
+export function renderDeathDisplay(onRespawn: () => void) {
+	let deathDisplay = document.createElement('div');
+	deathDisplay.classList.add('death-display');
+	deathDisplay.innerHTML = `
+		<h1 class='title'>You have fallen.</h1>
+		<p class='description'>i didn't have time for stats because the time remaining counter on the ludum dare website IS AN HOUR BEHIND</p>
+
+		<div class='stats'>
+			<p>Total Damage Dealt</p>
+			<p>Total Damage Taken</p>
+			<p>Total Enemies Defeated</p>
+			<p>Total Rooms Cleared</p>
+			<p>Total Soul Collected</p>
+		</div>
+
+		<button class='primary'>Restart</button>
+	`;
+
+	deathDisplay.querySelector('.primary')!.addEventListener('click', onRespawn);
+	document.body.appendChild(deathDisplay);
+}

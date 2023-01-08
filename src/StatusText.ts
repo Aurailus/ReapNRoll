@@ -1,8 +1,6 @@
 import { vec2 } from 'gl-matrix';
 import { GameObjects, Scene } from 'phaser';
 
-import setPausableTimeout from './PauseableTimeout';
-
 export default class StatusText extends GameObjects.Text {
 	constructor(scene: Scene, pos: vec2, damage: number, color = 'red') {
 
@@ -34,6 +32,6 @@ export default class StatusText extends GameObjects.Text {
 			duration: 100
 		});
 
-		setPausableTimeout(() => this.destroy(), 400);
+		this.scene.time.addEvent({ callback: () => this.destroy(), delay: 400 });
 	}
 }

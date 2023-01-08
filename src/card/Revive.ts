@@ -12,7 +12,6 @@ const card: CardType = {
 	rolls: [ '>= 9' ],
 	valid: () => false,
 	cast: (data, { room: { player }}) => {
-		console.log(data);
 		if (data.rolls[0].condition) {
 			player.heal(player.getMaxHealth());
 			player.giveInvincibility(1);

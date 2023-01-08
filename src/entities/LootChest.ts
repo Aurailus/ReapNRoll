@@ -2,11 +2,10 @@ import { vec2 } from 'gl-matrix';
 
 import Room from '../Room';
 import Entity from './Entity';
-import { Card, generateCards } from '../card/Card';
-import { renderCardSelector, renderChoice, renderDiceChooser } from '../CardRenderer';
-import setPausableTimeout, { pauseTimeouts, resumeTimeouts } from '../PauseableTimeout';
 import SoulDrop from './SoulDrop';
+import { Card, generateCards } from '../card/Card';
 import { Dice, DiceModifiers, getDiceName } from '../Dice';
+import { renderCardSelector, renderDiceChooser } from '../CardRenderer';
 
 export interface Props {
 	value: number;
@@ -31,13 +30,10 @@ export default class LootChest extends Entity<Props> {
 	update() {
 		if (this.active) return;
 
-		const playerPos = vec2.add(vec2.create(), this.room.player.pos,
-			vec2.scale(vec2.create(), this.room.player.size, 0.5));
-
 		const thisPos = vec2.add(vec2.create(), this.pos,
 			vec2.scale(vec2.create(), this.size, 0.5));
 
-		if (vec2.dist(playerPos, thisPos) < 16) {
+		if (vec2.dist(this.room.player.pos, thisPos) < 16) {
 			this.activate();
 			this.active = true;
 		}
@@ -48,7 +44,6 @@ export default class LootChest extends Entity<Props> {
 		this.knockback();
 
 		let lootType = Math.random() < 0.6 ? 'soul' : Math.random() < 0.7 ? 'dice' : 'card';
-		lootType = 'card';
 
 		switch (lootType) {
 			case 'soul': {
@@ -63,7 +58,6 @@ export default class LootChest extends Entity<Props> {
 					durability: Math.floor(Math.random() * 3) + 1
 				}
 
-				pauseTimeouts();
 				this.room.scene.scene.pause();
 				document.getElementById('card-shelf')?.remove();
 				document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
@@ -90,7 +84,6 @@ export default class LootChest extends Entity<Props> {
 					diceText.remove();
 				}
 
-				resumeTimeouts();
 				this.room.scene.scene.resume();
 				document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
 				this.room.player.updateCards();
@@ -98,7 +91,6 @@ export default class LootChest extends Entity<Props> {
 				break;
 			}
 			case 'card': {
-				pauseTimeouts();
 				this.room.scene.scene.pause();
 				document.getElementById('card-shelf')?.remove();
 				document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
@@ -118,61 +110,16 @@ export default class LootChest extends Entity<Props> {
 				}
 
 				newCards.forEach(card => this.room.player.addCard(card));
-				resumeTimeouts();
 				this.room.scene.scene.resume();
 				document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
 
 				break;
 			}
 		}
-
-
-	// 	const valueString = this.data.value === 1 ? 'Common' : this.data.value === 2 ? 'Rare' : 'Mythic';
-	// 	renderChoice(`Manifest ${valueString} Booster Pack?`,
-	// 		`Exchange ${this.data.cost} souls for a ${valueString} Booster Pack. Contains 3 random cards.`,
-	// 		'Exchange', 'Cancel', async (primary) => {
-
-	// 		if (primary) {
-	// 			this.room.player.setCurrency(this.room.player.getCurrency() - this.data.cost);
-	// 			this.room.entities.filter(e => e.type === 'loot_chest').forEach(e => e.destroy());
-
-	// 			const newCards: Card[] = generateCards(budgets[this.data.value as keyof typeof budgets]);
-	// 			document.querySelector('.choice-container')?.remove();
-
-	// 			while (newCards.length + this.room.player.cards.length > 7) {
-	// 				let elem: HTMLElement;
-	// 				await new Promise<void>((resolve) => {
-	// 					elem = renderCardSelector(this.room.player.cards, newCards, (player: boolean, ind: number) => {
-	// 						if (player) this.room.player.cards.splice(ind, 1);
-	// 						else newCards.splice(ind, 1);
-	// 						resolve();
-	// 					});
-	// 				});
-	// 				elem!.remove();
-	// 			}
-
-	// 			newCards.forEach(card =>this.room.player.addCard(card));
-	// 			this.deactivate();
-	// 		}
-	// 		else {
-	// 			this.room.player.updateCards();
-	// 			this.deactivate();
-	// 		}
-	// 	});
-
-	// 	pauseTimeouts();
-	// 	this.room.scene.scene.pause();
-	// 	document.getElementById('card-shelf')?.remove();
-	// 	document.getElementsByTagName('canvas')[0]!.classList.add('spellcasting');
 	}
 
 	deactivate() {
-		// resumeTimeouts();
-		// this.room.scene.scene.resume();
-		// document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
-		// document.querySelector('.choice-container')?.remove();
-
-		setPausableTimeout(() => this.active = false, 300);
+		this.room.scene.time.addEvent({ callback: () => this.active = false });
 		this.knockback();
 	}
 

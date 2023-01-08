@@ -1,5 +1,4 @@
 import { vec2 }	from 'gl-matrix';
-import setPausableTimeout from '../PauseableTimeout';
 
 import Room from '../Room';
 import Entity from './Entity';
@@ -13,27 +12,27 @@ export interface Props {
 export default class Timer extends Entity<Props> {
 	readonly type = 'timer';
 
-	timeout: ReturnType<typeof setPausableTimeout> | null = null;
+	event: Phaser.Time.TimerEvent | null = null;
 
 	constructor(room: Room, pos: vec2, data: Props) {
 		super(room, pos, data);
 
 		if (data.in) {
 			this.room.event.bind(data.in, () => {
-				if (this.timeout) return;
-				this.timeout = setPausableTimeout(() => {
+				if (this.event) return;
+				this.event = this.room.scene.time.addEvent({ delay: data.delay ?? 0, callback: () => {
 					this.room.event.emit(data.out);
-				}, data.delay || 0);
+				} });
 			});
 		}
 		else {
-			this.timeout = setPausableTimeout(() => {
+			this.event = room.scene.time.addEvent({ callback: () => {
 				this.room.event.emit(data.out);
-			}, data.delay || 0);
+			}, delay: data.delay || 0 });
 		}
 	}
 
 	destroy() {
-		this.timeout?.kill();
+		if (this.event) this.room.scene.time.removeEvent(this.event);
 	}
 }

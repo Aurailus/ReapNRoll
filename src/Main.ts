@@ -4,6 +4,7 @@ import './style.css';
 
 import LoadScene from './scene/LoadScene';
 import RoomScene from './scene/RoomScene';
+import DeathScene from './scene/DeathScene';
 
 new Game({
 	antialias: false,
@@ -13,6 +14,7 @@ new Game({
 	version: '0.0.1',
 	scene: [
 		LoadScene,
-		RoomScene
+		RoomScene,
+		DeathScene,
 	]
 })
