@@ -48,6 +48,12 @@ import dungeon_4 from '../../res/dungeon_4.png';
 import dungeon_5 from '../../res/dungeon_5.png';
 import room_souls from '../../res/room_souls.png';
 
+import snd_attack from '../../res/attack.wav';
+import snd_boltfire from '../../res/boltfire.wav';
+import snd_cast from '../../res/cast.wav';
+import snd_explode from '../../res/explode.wav';
+import snd_roll from '../../res/roll.wav';
+
 import DungeonRoom, { readRoomFromImage, Entity } from '../DungeonRoom';
 
 export let ROOM_SOULS: DungeonRoom = null as any;
@@ -98,6 +104,12 @@ export default class LoadScene extends Scene {
 		this.load.image('end_portal', end_portal);
 		this.load.image('soul', soul);
 		this.load.image('loot_chest', loot_chest);
+
+		this.load.audio('attack', snd_attack);
+		this.load.audio('boltfire', snd_boltfire);
+		this.load.audio('cast', snd_cast);
+		this.load.audio('explode', snd_explode);
+		this.load.audio('roll', snd_roll);
 	}
 
 	async create() {

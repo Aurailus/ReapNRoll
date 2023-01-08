@@ -30,6 +30,7 @@ const card: CardType = {
 				{ target: enemies[i % enemies.length], damage: data.rolls[i].roll }));
 			totalDamage += data.rolls[i].roll;
 		}
+		room.scene.sound.play('explode', { volume: 0.7, rate: 1.5 });
 
 		return { damage: totalDamage };
 	}

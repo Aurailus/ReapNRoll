@@ -201,13 +201,15 @@ export default class Player {
 		const diff = vec2.sub(vec2.create(), mousePos,
 		vec2.add(vec2.create(), this.pos, vec2.scale(vec2.create(), this.size, 0.5)));
 		this.sprite.anims.setProgress(0);
-		this.sprite.anims.play('attack');
+		this.scene.sound.play('attack', { volume: 0.5 });
 
 		const angle = Math.atan2(diff[1], diff[0]);
 		const variance = Math.PI / 2;
 		const steps = 6;
 		const distance = 28;
 		const radius = 8;
+
+		this.scene.sound.play('attack', { volume: 0.5 });
 
 		this.attackCooldown = 0.2;
 
@@ -273,6 +275,7 @@ export default class Player {
 						renderDiceChooser(this.defaultDice, this.dice, card.type.name, (index) => {
 							let die = index === -1 ? this.defaultDice : this.dice[index];
 							let value = rollDice(die);
+							this.scene.sound.play('roll');
 							rollValues.push(value);
 							if (die.durability) die.durability--;
 							if (die.durability === 0) this.dice.splice(index, 1);
@@ -320,7 +323,7 @@ export default class Player {
 						if (healAmount) this.heal(healAmount);
 					}
 					this.sprite.anims.setProgress(0);
-					this.sprite.anims.play('attack');
+					this.scene.sound.play('cast');
 
 					resolve();
 				}, 200);
@@ -347,6 +350,7 @@ export default class Player {
 
 		this.sprite.anims.setProgress(0);
 		this.sprite.anims.play('attack');
+		this.scene.sound.play('attack');
 		this.sprite.setFrame(2);
 		this.scene.time.addEvent({ delay: 100, callback: () => this.sprite.setFrame(0) });
 
@@ -380,6 +384,7 @@ export default class Player {
 		this.scene.time.addEvent({ delay: 300, callback: () => this.sprite.setFrame(0) });
 		this.sprite.anims.setProgress(0);
 		this.sprite.anims.play('attack');
+		this.scene.sound.play('boltfire');
 
 		const { x: mouseX, y: mouseY } = this.scene.input.mousePointer
 			.positionToCamera(this.scene.cameras.main) as Phaser.Math.Vector2;
@@ -394,6 +399,8 @@ export default class Player {
 		const enemiesColliding = [...ENEMIES.values()]
 			.filter(enemy => this.dodgeHit.indexOf(enemy) === -1 && intersects(enemy.getBounds(), this.getBounds()));
 
+			if (enemiesColliding.length)
+			this.scene.sound.play('attack', { volume: 0.5 });
 		enemiesColliding.forEach(enemy => {
 			this.dodgeHit.push(enemy);
 			const kb = vec2.sub(vec2.create(), enemy.pos, this.pos);
@@ -410,6 +417,7 @@ export default class Player {
 		this.vel = knockback;
 		this.invincibilityTime = 0.5;
 		this.noControlTime = 0.15;
+		this.scene.sound.play('attack', { volume: 0.5, rate: 1.5 });
 
 		this.updateHealth();
 

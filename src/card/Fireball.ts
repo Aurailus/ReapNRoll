@@ -22,6 +22,8 @@ const card: CardType = {
 		let circle = room.scene.add.circle(target[0], target[1], 16 * 3, 0xff0000, 0.3);
 		room.scene.time.addEvent({ callback: () => circle.destroy(), delay: 200 });
 
+		room.scene.sound.play('explode', { volume: 0.7, rate: 1.5 });
+
 		let totalDamage = 0;
 
 		room.entities

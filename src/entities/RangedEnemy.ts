@@ -162,6 +162,7 @@ export default class RangedEnemy extends Enemy {
 			this.noControlTime = 0.5;
 			this.room.scene.time.addEvent({ delay: 300, callback: () => this.room.entities.push(new RangedEnemyProjectile(this.room, this.pos, { damage: 1 })) });
 			this.sprite.anims.play('attack');
+			this.sprite.scene.sound.play('boltfire');
 		}
 	}
 

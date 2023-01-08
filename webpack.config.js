@@ -15,6 +15,10 @@ module.exports = {
         type: 'asset/resource'
       },
       {
+        test: /\.wav$/,
+        type: 'asset/resource'
+      },
+      {
         test: /\.css$/,
         use: [ 'style-loader', 'css-loader' ]
       }

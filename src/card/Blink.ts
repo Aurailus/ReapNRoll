@@ -43,6 +43,7 @@ const card: CardType = {
 				enemy.damage(data.rolls[0].roll, diff);
 				totalDamage += data.rolls[0].roll;
 			});
+			room.scene.sound.play('explode', { volume: 0.7, rate: 1.5 });
 
 		return { damage: totalDamage };
 	}
