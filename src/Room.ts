@@ -14,7 +14,6 @@ import { roundTo, clamp } from './Util';
 const TILE_TRANSFORMER = [ -1, 12, 10, 11, 2, 7, 13, 3, 0, 14, 5, 4, 1, 8, 9, 6 ];
 
 const ENTITY_CONSTRUCTORS: Record<string, typeof Entity<any>> = {
-	// 'pressure_plate': PressurePlate
 		timer: Timer,
 		spike: Spike,
 		enemy: Enemy
@@ -22,7 +21,7 @@ const ENTITY_CONSTRUCTORS: Record<string, typeof Entity<any>> = {
 
 export default class Room {
 	private group: GameObjects.Group;
-	private entities: Entity<any>[] = [];
+	readonly entities: Entity<any>[] = [];
 	readonly event = new EventEmitter();
 	private tileSprite: GameObjects.TileSprite;
 	private tilemap: Phaser.Tilemaps.Tilemap;
@@ -63,7 +62,7 @@ export default class Room {
 		this.group.add(layer, true);
 
 		for (let entData of data.entities) {
-			let entity = new ENTITY_CONSTRUCTORS[entData.type](this, entData.pos, entData.data);
+			let entity = new (ENTITY_CONSTRUCTORS[entData.type] as any)(this, entData.pos, entData.data);
 			this.entities.push(entity);
 		}
 	}
@@ -80,7 +79,7 @@ export default class Room {
 				0, (this.data.size[1] - 2) * 16 - this.tileSprite.height), 32)
 		);
 
-		if (Math.random() > 0.6) {
+		if (Math.random() > 0.4) {
 			let randPos = vec2.fromValues(Math.floor(Math.random() * this.data.size[0]),
 				Math.floor(Math.random() * this.data.size[1]));
 
@@ -89,5 +88,9 @@ export default class Room {
 				this.scene.add.existing(new StarParticle(this.scene, randPos));
 			}
 		}
+	}
+
+	destroyEntity(entity: Entity<any>) {
+		this.entities.splice(this.entities.indexOf(entity), 1);
 	}
 }

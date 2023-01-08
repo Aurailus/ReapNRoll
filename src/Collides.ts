@@ -1,4 +1,4 @@
-import { vec4 }	from 'gl-matrix';
+import { vec2, vec4 }	from 'gl-matrix';
 import DungeonRoom from './DungeonRoom';
 
 const TILE_SIZE = 16;
@@ -15,6 +15,17 @@ export function collides(bounds: vec4, map: DungeonRoom): boolean {
 		}
 	}
 
+	return false;
+}
+
+export function rayCollides(start: vec2, end: vec2, map: DungeonRoom): boolean {
+	let max = vec2.dist(start, end) * 10;
+	for (let i = 0; i < max; i++) {
+		let checkPos = vec2.add(vec2.create(), start, vec2.scale(vec2.create(),
+			vec2.sub(vec2.create(), end, start), i / max));
+		let tileCheckPos = vec2.round(vec2.create(), vec2.scale(vec2.create(), checkPos, 1 / TILE_SIZE));
+		if (map.solid[(tileCheckPos[1] + 1) * map.size[0] + (tileCheckPos[0] + 1)]) return true;
+	}
 	return false;
 }
 

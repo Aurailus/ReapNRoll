@@ -1,5 +1,20 @@
+body {
+	margin: 0;
+	display: grid;
+	overflow: hidden;
+}
+
 * {
 	box-sizing: border-box;
+}
+
+canvas {
+	transition: filter 0.2s, transform 0.2s;
+}
+
+canvas.spellcasting {
+	filter: blur(24px) brightness(0.3) saturate(5);
+	transform: scale(1.1);
 }
 
 .card {
@@ -10,12 +25,22 @@
 	padding: 4px;
 }
 
+.card.active {
+	background: white !important;
+}
+
 .card .image {
 	image-rendering: pixelated;
 	image-rendering: crisp-edges;
 }
 
-.card .title {
+.card .header {
+	display: flex;
+	justify-content: space-between;
+	padding: 0 4px;
+}
+
+.card .title, .card .index {
 	font-weight: bold;
 	font-size: 20px;
 	line-height: 2em;
@@ -32,15 +57,33 @@
 	gap: 16px;
 	padding-left: 16px;
 	overflow: hidden;
+	pointer-events: none;
+}
+
+#card-shelf:hover .card {
+	will-change: transform;
 }
 
 #card-shelf .card {
 	transform: translateY(220px);
 	transition: transform 0.3s;
+	pointer-events: auto;
 }
 
 #card-shelf .card:hover {
 	transform: translateY(0);
+}
+
+#dice-chooser .title {
+	position: absolute;
+	top: -96px;
+	left: 50%;
+	transform: translateX(-50%);
+	font-family: sans-serif;
+	font-size: 32px;
+	font-weight: bold;
+	color: white;
+	text-shadow: 0 2px 12px rgb(0 0 0 / .5), 0 1px 4px rgba(0 0 0 / .5);
 }
 
 #dice-chooser {
@@ -55,12 +98,35 @@
 	image-rendering: crisp-edges;
 }
 
+#dice-chooser .cancel {
+	width: 104px;
+	height: 104px;
+	top: -24px;
+	left: -24px;
+	position: absolute;
+	background-size: cover;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	opacity: 50%;
+}
+
+#dice-chooser .cancel:hover {
+	opacity: 100%;
+}
+
 .dice-container {
-	width: 96px;
-	height: 96px;
+	width: 112px;
+	height: 112px;
+	padding: 8px;
+	background-size: cover;
 	display: grid;
 	position: absolute;
 	transform: translate(-50%, -50%);
+}
+
+.dice-container:hover {
+	background-image: var(--dice-select);
+	filter: brightness(110%);
 }
 
 .dice-container .image {
@@ -70,18 +136,33 @@
 
 .dice-container .label {
 	position: absolute;
+	font-family: sans-serif;
+	text-shadow: 0 2px 12px rgb(0 0 0 / .5), 0 1px 4px rgba(0 0 0 / .5);
+}
+
+.dice-container .label .name {
 	font-weight: bold;
 	color: white;
 	font-size: 24px;
 	white-space: pre;
-	font-family: sans-serif;
-	text-shadow: 0 2px 12px rgb(0 0 0 / .5), 0 1px 4px rgba(0 0 0 / .5);
+	margin: 0;
+	margin-bottom: 2px;
+}
+
+.dice-container .label .durability {
+	font-weight: bold;
+	color: white;
+	opacity: 0.8;
+	font-size: 18px;
+	white-space: pre;
+	margin: 0;
 }
 
 .dice-container .label.left {
 	top: 50%;
 	right: 100%;
 	padding-right: 12px;
+	text-align: right;
 	transform: translateY(-50%);
 }
 
@@ -94,7 +175,42 @@
 
 .dice-container .label.center {
 	top: 100%;
-	padding-top: 12px;
+	text-align: center;
+	padding-top: 4px;
 	left: 50%;
 	transform: translateX(-50%);
+}
+
+.roll-text {
+	position: absolute;
+	top: 50vh;
+	left: 50vw;
+	transform: translate(-50%, -50%);
+	font-family: sans-serif;
+	font-size: 256px;
+	font-weight: bold;
+	color: white;
+	margin: 0;
+	text-shadow: 0 2px 12px rgb(0 0 0 / .5), 0 1px 4px rgba(0 0 0 / .5);
+}
+
+#health-container {
+	position: absolute;
+	display: flex;
+	top: 16px;
+	left: 16px;
+}
+
+#health-container .notch {
+	height: 48px;
+	width: 16px;
+	background: var(--bg-empty);
+	background-size: cover;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+}
+
+#health-container .notch.full {
+	background: var(--bg-full);
+	background-size: cover;
 }

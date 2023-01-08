@@ -1,4 +1,6 @@
-import card_image from '../res/card_image.png';
+import { vec2 } from 'gl-matrix';
+
+import Room from '../Room';
 
 export type Equivalency = '=' | '>=' | '>' | '<' | '<=' | '!=';
 
@@ -12,7 +14,8 @@ export const EquivalencyInverse: Record<Equivalency, Equivalency> = {
 };
 
 export interface CardContext {
-
+	room: Room;
+	target: vec2;
 }
 
 export type Condition = `${Equivalency} ${number}`;
@@ -32,6 +35,7 @@ export interface CardType {
 	description: string;
 	rolls: (Intensity | Condition)[];
 
+	valid?: (ctx: CardContext) => boolean;
 	cast: (data: CastData, ctx: CardContext) => void;
 }
 
@@ -52,50 +56,19 @@ export const CardModifierNames: Record<CardModifier | '', string> = {
 
 export const CardTypes = new Map<string, CardType>();
 
-CardTypes.set('fireball', {
-	name: 'Fireball',
-	image: card_image,
-	description: 'Deals %1% damage to each creature within a 3 tile radius.',
-	rolls: [ '2x+2' ],
-	cast: (data) => {
-		console.log('fireball', data);
-	}
-});
+import Beam from './Beam';
+import Heal from './Heal';
+import Blink from './Blink';
+import Revive from './Revive';
+import Fireball from './Fireball';
+import MagicMissile from './MagicMissile';
 
-CardTypes.set('heal', {
-	name: 'Heal',
-	image: card_image,
-	description: 'Restores %1% health to the caster.',
-	rolls: [ '4x' ],
-	cast: (data) => {
-		console.log('healed ' + data.rolls[0].roll + ' health');
-	}
-});
-
-CardTypes.set('magic_missile', {
-	name: 'Magic Missile',
-	image: card_image,
-	description: 'Fires 3 homing bolts to nearby enemies, where each bolt does %1% damage.',
-	rolls: [ '1x+4' ],
-	cast: (data) => {
-		console.log('magic missile', data);
-	}
-});
-
-CardTypes.set('room_loot', {
-	name: 'Avarice',
-	image: card_image,
-	description: 'If you roll %1%, the next room becomes a loot room.',
-	rolls: [ '>= 3' ],
-	cast: (data) => {
-		if (data.rolls[0].condition) {
-			console.log('next room is loot room')
-		}
-		else {
-			console.log('next room is not loot room')
-		}
-	}
-});
+CardTypes.set('beam', Beam);
+CardTypes.set('heal', Heal);
+CardTypes.set('blink', Blink);
+CardTypes.set('revive', Revive);
+CardTypes.set('fireball', Fireball);
+CardTypes.set('magic_missile', MagicMissile);
 
 export interface Card {
 	type: CardType;
@@ -113,7 +86,7 @@ export function modifyCard(card: Card): Card {
 				if (condition.includes('x')) {
 					let intensity = 0, offset = 0;
 					if (condition.includes('+')) {
-						[ intensity, offset ] = condition.split('x+').map(Number.parseInt);
+						[ intensity, offset ] = condition.split('x+').map((num) => Number.parseInt(num, 10));
 					}
 					else {
 						intensity = Number.parseInt(condition);
@@ -121,11 +94,11 @@ export function modifyCard(card: Card): Card {
 
 					switch (card.modifier) {
 						case 'refined': {
-							offset += 2;
+							offset += Math.max(Math.floor(offset / 2), 2);
 							break;
 						}
 						case 'crude': {
-							offset -= 2;
+							offset -= Math.max(Math.floor(offset / 2), 2);
 							break;
 						}
 						default: {
@@ -213,4 +186,9 @@ export function executeCard(card: Card, rolls: number[], ctx: CardContext) {
 	}
 
 	card.type.cast(data, ctx);
+}
+
+export function canExecuteCard(card: Card, ctx: CardContext) {
+	if (!card.type.valid) return true;
+	return card.type.valid(ctx);
 }

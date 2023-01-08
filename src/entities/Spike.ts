@@ -10,6 +10,8 @@ export interface Props {
 }
 
 export default class Spike extends Entity<Props> {
+	readonly type = 'spike';
+
 	private active = true;
 	private sprite: Phaser.GameObjects.Sprite;
 

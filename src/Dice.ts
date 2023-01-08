@@ -12,6 +12,7 @@ export const DiceModifierNames: Record<DiceModifier | '', string> = {
 export interface Dice {
 	sides: number;
 	modifier: DiceModifier | null;
+	durability: number | null;
 }
 
 export function rollDice(dice: Dice) {

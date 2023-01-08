@@ -12,33 +12,54 @@ import spike_on from '../res/spike_on.png';
 import health_full from '../res/health_full.png';
 import health_empty from '../res/health_empty.png';
 import star from '../res/star.png';
+import enemy from '../res/enemy.png';
+import magic_missile_projectile from '../res/magic_missile_projectile.png';
 
-import DungeonRoom, { readRoomFromImage } from './DungeonRoom';
 import Room from './Room';
-import getPath from './AStar';
+import { Card, CardTypes } from './card/Card';
+import DungeonRoom, { readRoomFromImage } from './DungeonRoom';
+import { pauseTimeouts, resumeTimeouts } from './PauseableTimeout';
 
 export default class GameScene extends Scene {
 	player: Player = null as any;
 	map: DungeonRoom = null as any;
 	room: Room = null as any;
+	paused: boolean = false;
 	lastTime = 0;
+
+	private pauseEvent: ((evt: KeyboardEvent) => void) | null = null;
 
 	preload() {
 		this.load.image('tile_wall_dirt', tile_wall_dirt);
-		this.load.image('player', player);
+		this.load.image('enemy', enemy);
+		this.load.spritesheet('player', player, { frameWidth: 16, frameHeight: 16 });
 		this.load.image('spike_off', spike_off);
 		this.load.image('spike_on', spike_on);
 		this.load.image('health_full', health_full);
 		this.load.image('health_empty', health_empty);
 		this.load.image('tile_ground', ground);
 		this.load.spritesheet('star_particle', star, { frameWidth: 16, frameHeight: 16 });
-
+		this.load.image('magic_missile_projectile', magic_missile_projectile);
 	}
 
 	create() {
 		this.cameras.main.setZoom(4);
-		let hudCamera = this.cameras.add(0, 0, undefined, undefined, false, 'hud');
-		hudCamera.setScroll(-10000, 0);
+
+		this.pauseEvent = (evt: KeyboardEvent) => {
+			if (evt.key === 'Escape') {
+				this.paused = !this.paused;
+				if (this.paused) {
+					pauseTimeouts();
+					this.scene.pause();
+				}
+				else {
+					resumeTimeouts();
+					this.scene.resume();
+				}
+			}
+		};
+
+		document.addEventListener('keydown', this.pauseEvent);
 
 		readRoomFromImage(map_img).then(mapData => {
 			this.map = mapData;
@@ -87,35 +108,74 @@ export default class GameScene extends Scene {
 					deactivate: 'b'
 				}
 			},
-			// {
-			// 	type: 'enemy',
-			// 	pos: [ 12, 8 ],
-			// 	data: {}
-			// }
+			{
+				type: 'enemy',
+				pos: [ 12, 8 ],
+				data: {}
+			},
+			{
+				type: 'enemy',
+				pos: [ 12, 6 ],
+				data: {}
+			},
+			{
+				type: 'enemy',
+				pos: [ 14, 8 ],
+				data: {}
+			},
+			{
+				type: 'enemy',
+				pos: [ 12, 10 ],
+				data: {}
+			}
 			)
 
-			let hud = this.add.container(0, 0).setScrollFactor(0).setScale(4);
-			this.player = new Player(this, vec2.fromValues(12 * 16, 8 * 16), this.map, hud)
-
+			this.player = new Player(this, vec2.fromValues(12 * 16, 8 * 16));
 			this.room = new Room(this, this.map, this.player);
+			this.player.setRoom(this.room);
+
+			// const beam: Card = { type: CardTypes.get('beam')!, modifier: null };
+			// this.player.addCard(beam);
+
+			const revive: Card = { type: CardTypes.get('revive')!, modifier: null };
+		this.player.addCard(revive);
+
+			const heal: Card = { type: CardTypes.get('heal')!, modifier: null };
+			this.player.addCard(heal);
+			this.player.addCard({ ...heal });
+
+			const fireball: Card = { type: CardTypes.get('fireball')!, modifier: null };
+			this.player.addCard(fireball);
+
+			const fireball2: Card = { type: CardTypes.get('fireball')!, modifier: 'crude' };
+			this.player.addCard(fireball2);
+
+			const fireball3: Card = { type: CardTypes.get('fireball')!, modifier: 'refined' };
+			this.player.addCard(fireball3);
+
+			// const magic_missile: Card = { type: CardTypes.get('magic_missile')!, modifier: null };
+			// this.player.addCard(magic_missile);
+
+			// const blink: Card = { type: CardTypes.get('blink')!, modifier: null };
+			// this.player.addCard(blink);
+
+			this.player.addDice({ sides: 6, modifier: null, durability: 3 });
+			this.player.addDice({ sides: 20, modifier: 'cursed', durability: 3 });
+			this.player.addDice({ sides: 16, modifier: 'weighted', durability: 3 });
+			this.player.addDice({ sides: 20, modifier: null, durability: 3 });
 
 			this.cameras.main.startFollow(this.player.sprite, true, 1, 1);
 
-			// console.log(getPath([ 8, 4 ], [ 2, 2 ], this.map));
-
-			// this.add.sprite(-10000, 0, 'health_full').setOrigin(0, 0);
-			// this.add.sprite(0, 0, 'health_full').setOrigin(0, 0).setScrollFactor(0);
-
 			console.log('go');
 		});
-
-		// setTimeout(() => {
-		// 	this.player.damage(1);
-		// }, 1000);
 	}
 
 	update() {
 		this.player?.update(0.016);
 		this.room?.update(0.016);
+	}
+
+	destroy() {
+		document.removeEventListener('keydown', this.pauseEvent!);
 	}
 }
