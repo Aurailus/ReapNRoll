@@ -78,11 +78,14 @@ export default class Player {
 			down: this.scene.input.keyboard.addKey(dvorak ? Input.Keyboard.KeyCodes.O : Input.Keyboard.KeyCodes.S),
 		}
 
-
 		this.scene.input.keyboard.on('keydown', (evt: KeyboardEvent) => {
 			const num = Number.parseInt(evt.key, 10);
 			if (isNaN(num)) return;
-			this.activeCard = (this.activeCard === num - 1 ? null : num - 1);
+			if (this.activeCard === null || num - 1 !== this.activeCard) {
+				if (num > this.cards.length) return;
+				this.activeCard = num - 1;
+			}
+			else this.activeCard = null;
 			this.updateCards();
 		});
 
