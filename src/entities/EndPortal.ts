@@ -25,7 +25,6 @@ export default class EndPortal extends Entity<{}> {
 
 			if (this.room.data === ROOM_SOULS) {
 				const roomOptions = [ ...ROOMS ];
-				roomOptions.splice(ROOMS.indexOf(this.room.data), 1);
 				nextRoom = roomOptions[Math.floor(Math.random() * roomOptions.length)];
 			}
 			else {

@@ -112,6 +112,7 @@ export default class LootChest extends Entity<Props> {
 				newCards.forEach(card => this.room.player.addCard(card));
 				this.room.scene.scene.resume();
 				document.getElementsByTagName('canvas')[0]!.classList.remove('spellcasting');
+				this.room.player.updateCards();
 
 				break;
 			}
